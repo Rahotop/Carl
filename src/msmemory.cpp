@@ -32,7 +32,7 @@ float MSmemory::evaluate(bool *s)
 
 
 	unsigned int replace = 0;
-	if(m_saved < m_memory)
+	if(m_saved < m_memsize)
 	{
 		replace = m_saved;
 		++m_saved;
