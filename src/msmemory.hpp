@@ -1,6 +1,7 @@
 #ifndef MSMEMORY_HPP_INCLUDED
 #define MSMEMORY_HPP_INCLUDED
 
+#include <algorithm>
 #include <string>
 #include "maxsat.hpp"
 
