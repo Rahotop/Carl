@@ -1,7 +1,9 @@
 #ifndef FNARRAY_HPP_INCLUDED
 #define FNARRAY_HPP_INCLUDED
 
+#include <iostream>
 #include <vector>
+#include <stack>
 
 class FnArray
 {
