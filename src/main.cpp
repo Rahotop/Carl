@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-	srand(123456);
+	//srand(123456);
 
 	//MaxSat test("uf50-01.cnf");
 	/*MSmemory test("uf50-01.cnf", 100);
@@ -23,13 +23,20 @@ int main(int argc, char **argv)
 	delete[] s;*/
 
 
-	FnArray test(3,10,2,{1,7,9,11,13});
-	bool *s = new bool[2];
+	FnArray test(400,15,128,{1,7,9,11,13});
 
-	s[0] = true;
-	s[1] = true;
+	for(unsigned int i(0); i < 400; ++i)
+		test.addRandom();
 
-	std::cout << test.evaluate(s);
+	bool s[128];
+	for(unsigned int i(0); i < 128; ++i)
+		s[i] = rand()%2;
+
+	#pragma omp parallel for
+	for(unsigned int i = 0; i < 1000000; ++i)
+		test.evaluate(s);
+
+	std::cout << test.evaluate(s) << std::endl;
 
 	return 0;
 }

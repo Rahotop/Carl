@@ -1,6 +1,8 @@
 #ifndef FNARRAY_HPP_INCLUDED
 #define FNARRAY_HPP_INCLUDED
 
+#include <iomanip>
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -14,6 +16,10 @@ class FnArray
 
 	float evaluate(bool *s) const;
 
+	void addRandom();
+
+	friend std::ostream& operator<<(std::ostream& o, const FnArray& fn);
+
 	private:
 
 	std::vector<unsigned int> m_fnset;
@@ -26,5 +32,7 @@ class FnArray
 	bool *m_not;
 	float *m_weights;
 };
+
+std::ostream& operator<<(std::ostream& os, const FnArray& fn);
 
 #endif
