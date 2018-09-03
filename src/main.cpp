@@ -2,41 +2,58 @@
 #include <cstdlib>
 #include <ctime>
 #include "fnarray.hpp"
+#include "maxsat.hpp"
+#include "localsearch.hpp"
+#include "msalgogen.hpp"
 
 int main(int argc, char **argv)
 {
-	//srand(123456);
+	srand(time(nullptr));
 
-	//MaxSat test("uf50-01.cnf");
-	/*MSmemory test("uf50-01.cnf", 100);
+	MaxSat test("uf50-01.cnf");
 
-	bool *s = new bool[test.getN()*1000];
+	msalgogeninc(test, 100, 15, 5, 500, 100);
 
-	for(unsigned int i(0); i < test.getN()*1000; ++i)
+	//MSmemory test("uf50-01.cnf", 100);
+/*
+	bool *s = new bool[test.getN()];
+
+	for(unsigned int i(0); i < test.getN(); ++i)
 		s[i] = rand()%2;
 
 	for(unsigned int i = 0; i < 10000000; ++i)
-		test.evaluate(&s[rand()%1000]);
+		test.evaluate(s);*/
 
-	std::cout << "11...1 : " << test.evaluate(s) << " - nbeval : " << test.getnbeval() << std::endl;
+	//bool *s = localsearch(test);
 
-	delete[] s;*/
+	//std::cout << "11...1 : " << test.evaluate(s) << " - nbeval : " << test.getnbeval() << std::endl;
 
 
-	FnArray test(400,15,128,{1,7,9,11,13});
+/*
+	FnArrayInc test(400,15,256,{1,7,9,11,13});
 
 	for(unsigned int i(0); i < 400; ++i)
 		test.addRandom();
 
-	bool s[128];
-	for(unsigned int i(0); i < 128; ++i)
+	for(unsigned int i(0); i < 1000; ++i)
+	{
+		delete[] localsearch(test);
+	}
+
+	bool *s = localsearch(test);
+
+	std::cout << test.evaluate(s) << std::endl;*/
+
+	//delete[] s;
+
+/*
+	bool *s = new bool[256];
+	for(unsigned int i(0); i < 256; ++i)
 		s[i] = rand()%2;
 
-	#pragma omp parallel for
 	for(unsigned int i = 0; i < 1000000; ++i)
-		test.evaluate(s);
+		test.evaluate(s);*/
 
-	std::cout << test.evaluate(s) << std::endl;
 
 	return 0;
 }

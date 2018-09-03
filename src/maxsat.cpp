@@ -56,12 +56,16 @@ float MaxSat::evaluate(bool *s)
 	for(unsigned int i(0); i < m_size; ++i)
 	{
 		int form = m_clauses[i];
-		bool tmp = (form > 0) ? s[form-1] : !s[-form-1];
+		bool tmp = false;
 		if(form == 0)
 		{
 			score += sat;
 			sat = false;
 			tmp = false;
+		}
+		else
+		{
+			tmp = (form > 0) ? s[form-1] : !s[-form-1];
 		}
 		sat = sat || tmp;
 	}
