@@ -32,39 +32,6 @@ FnArray::~FnArray()
 	if(m_weights)
 		delete[] m_weights;
 }
-/*
-float FnArray::evaluate(bool *s) const
-{
-	float sum = 0;
-	unsigned int end = m_n+16;
-	for(unsigned int i(0); i < m_size; ++i)
-	{
-		std::stack<bool> tmp;
-		unsigned int index = i*m_width;
-		for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
-		{
-			unsigned int op = m_trees[index+j];
-			if(op >= 16)
-			{
-				tmp.push(s[op-16] == m_not[index+j]);
-			}
-			else
-			{
-				unsigned int offset = tmp.top();
-				tmp.pop();
-				offset += 2*tmp.top();
-				tmp.pop();
-
-				op <<= offset;
-				op >>= 3;
-
-				tmp.push(op%2 == m_not[index+j]);
-			}
-		}
-		sum += tmp.top() * m_weights[i];
-	}
-	return sum;
-}*/
 
 float FnArray::evaluate(bool *s) const
 {
@@ -87,7 +54,10 @@ float FnArray::evaluate(bool *s) const
 			}
 			else
 			{
-				unsigned int offset = tmp[--stack] + 2*tmp[--stack];
+				--stack;
+				unsigned int offset = tmp[stack];
+				--stack;
+				offset += 2*tmp[stack];
 
 				op <<= offset;
 				op >>= 3;
@@ -372,7 +342,10 @@ float FnArrayInc::evaluate(bool *s) const
 			}
 			else
 			{
-				unsigned int offset = tmp[--stack] + 2*tmp[--stack];
+				--stack;
+				unsigned int offset = tmp[stack];
+				--stack;
+				offset += 2*tmp[stack];
 
 				op <<= offset;
 				op >>= 3;
@@ -423,7 +396,10 @@ float FnArrayInc::evaluateInc(bool *s, unsigned int changed) const
 				}
 				else
 				{
-					unsigned int offset = tmp[--stack] + 2*tmp[--stack];
+					--stack;
+					unsigned int offset = tmp[stack];
+					--stack;
+					offset += 2*tmp[stack];
 
 					op <<= offset;
 					op >>= 3;
@@ -435,7 +411,7 @@ float FnArrayInc::evaluateInc(bool *s, unsigned int changed) const
 		sum += tmp[0] * m_weights[i];
 	}
 
-	s[changed] = ! s[changed];
+	s[changed] = !s[changed];
 	delete[] tmp;
 	return sum;
 }
