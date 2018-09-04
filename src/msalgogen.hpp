@@ -1,6 +1,7 @@
 #ifndef MSALGOGEN_HPP_INCLUDED
 #define MSALGOGEN_HPP_INCLUDED
 
+#include <utility>
 #include <vector>
 #include <iterator>
 #include <algorithm>
@@ -22,13 +23,25 @@ class MSalgogenincpar
 	MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width);
 	~MSalgogenincpar();
 
-	void run(MaxSat& ms, unsigned int newSize, unsigned int nbIt);
+	void run(const MaxSat& ms, unsigned int newSize, unsigned int nbIt);
 
 	private:
 	
+	void crossover(unsigned int p1, unsigned int p2, unsigned int next);
+
 	void addRandom(unsigned int index);
 	void addRandom(unsigned int index, unsigned int next);
+
+	void deleteRandom(unsigned int index, unsigned int next);
+	void deleteTree(unsigned int index, unsigned int next, unsigned int tree);
+
 	void copy(unsigned int index, unsigned int next);
+	void copy(unsigned int index, unsigned int next, unsigned int tree);
+
+	float evaluate(unsigned int index, bool *s);
+	bool* localsearch(unsigned int index);
+
+	void show(unsigned int index);
 
 	// PARAM
 	std::vector<unsigned int> m_fnset;

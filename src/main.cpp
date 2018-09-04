@@ -12,7 +12,11 @@ int main(int argc, char **argv)
 
 	MaxSat test("uf50-01.cnf");
 
-	msalgogeninc(test, 100, 15, 5, 1000, 100);
+	MSalgogenincpar algo(100,100,15);
+
+	algo.run(test, 5, 250);
+
+	//msalgogeninc(test, 100, 15, 5, 1000, 100);
 
 	//MSmemory test("uf50-01.cnf", 100);
 /*

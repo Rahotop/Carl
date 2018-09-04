@@ -11,7 +11,7 @@ class MaxSat
 	MaxSat(const std::string& path);
 	~MaxSat();
 
-	float evaluate(bool *s);
+	float evaluate(bool *s) const;
 
 	inline unsigned int getnbeval() const { return m_nbeval; }
 	inline unsigned int getN() const { return m_n; }
