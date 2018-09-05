@@ -442,7 +442,7 @@ float MSalgogenincpar::evaluate(unsigned int ind, bool *s)
 	unsigned int end = m_n+16;
 
 	bool *tmp = new bool[m_width];
-	
+
 	for(unsigned int i(0); i < m_size[ind]; ++i)
 	{
 		unsigned int stack = 0;
@@ -468,7 +468,7 @@ float MSalgogenincpar::evaluate(unsigned int ind, bool *s)
 				tmp[stack++] = (op%2 == notop);
 			}
 		}
-		sum += tmp[0] * m_weights[i];
+		sum += tmp[0] * m_weights[ind*m_maxsize + i];
 	}
 
 	delete[] tmp;
