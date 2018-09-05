@@ -169,6 +169,8 @@ MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, uns
 																									m_size(new unsigned int[popsize]),
 																									m_trees(new unsigned int[popsize*maxsize*width]),
 																									m_not(new bool[popsize*maxsize*width]),
+																									m_prec(new bool[popsize*maxsize]),
+																									m_curr(new bool[popsize*maxsize]),
 																									m_weights(new float[popsize*maxsize]),
 																									m_fitness(new float[popsize]),
 
@@ -188,6 +190,8 @@ MSalgogenincpar::~MSalgogenincpar()
 	delete[] m_size;
 	delete[] m_trees;
 	delete[] m_not;
+	delete[] m_prec;
+	delete[] m_curr;
 	delete[] m_weights;
 	delete[] m_fitness;
 
@@ -469,10 +473,73 @@ float MSalgogenincpar::evaluate(unsigned int ind, bool *s)
 			}
 		}
 		sum += tmp[0] * m_weights[ind*m_maxsize + i];
+		m_prec[ind*m_maxsize + i] = tmp[0];
 	}
 
 	delete[] tmp;
 	return sum;
+}
+
+float MSalgogenincpar::evaluateinc(unsigned int ind, bool *s, unsigned int changed)
+{
+	float sum = 0;
+	unsigned int end = m_n+16;
+
+	bool *tmp = new bool[m_width];
+
+	for(unsigned int i(0); i < m_size[ind]; ++i)
+	{
+		unsigned int index = ind*m_maxsize*m_width + i*m_width;
+		bool update = false;
+		for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
+		{
+			if((m_trees[index+j] - 16) == changed)
+			{
+				update = true;
+				break;
+			}
+		}
+		tmp[0] = m_prec[ind*m_maxsize + i];
+
+		if(update)
+		{
+			unsigned int stack = 0;
+			for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
+			{
+				unsigned int op = m_trees[index+j];
+				bool notop = m_not[index+j];
+				if(op >= 16)
+				{
+					tmp[stack++] = (s[op-16] == notop);
+				}
+				else
+				{
+					--stack;
+					unsigned int offset = tmp[stack];
+					--stack;
+					offset += 2*tmp[stack];
+
+					op <<= offset;
+					op >>= 3;
+
+					tmp[stack++] = (op%2 == notop);
+				}
+			}
+		}
+		sum += tmp[0] * m_weights[ind*m_maxsize + i];
+		m_curr[ind*m_maxsize + i] = tmp[0];
+	}
+
+	delete[] tmp;
+	return sum;
+}
+
+void MSalgogenincpar::acceptCurr(unsigned int ind)
+{
+	for(unsigned int i(0); i < m_size[ind]; ++i)
+	{
+		m_prec[ind*m_maxsize + i] = m_curr[ind*m_maxsize + i];
+	}
 }
 
 bool* MSalgogenincpar::localsearch(unsigned int index)
@@ -494,12 +561,13 @@ bool* MSalgogenincpar::localsearch(unsigned int index)
 		for(unsigned int i(0); i < m_n; ++i)
 		{
 			s[next[i]] = !s[next[i]];
-			float tmp = evaluate(index, s);
+			float tmp = evaluateinc(index, s, next[i]);
 
 			if(tmp > score)
 			{
 				score = tmp;
 				improved = true;
+				acceptCurr(index);
 				break;
 			}
 			else

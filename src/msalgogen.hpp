@@ -39,6 +39,8 @@ class MSalgogenincpar
 	void copy(unsigned int index, unsigned int next, unsigned int tree);
 
 	float evaluate(unsigned int index, bool *s);
+	float evaluateinc(unsigned int index, bool *s, unsigned int changed);
+	void acceptCurr(unsigned int ind);
 	bool* localsearch(unsigned int index);
 
 	void show(unsigned int index);
@@ -56,6 +58,8 @@ class MSalgogenincpar
 	unsigned int *m_size; // m_size[i] is the number of subtrees in the i-th ind 
 	unsigned int *m_trees; // m_trees[i*maxsize*width+j*width+k] is the k-th element of the j-th subtree of i-th ind
 	bool *m_not; // m_not[i*maxsize*width+j*width+k] is the sign of the k-th element of the j-th subtree of i-th ind
+	bool *m_prec;
+	bool *m_curr;
 	float *m_weights; // m_weights[i*maxsize+j] is the weight of the j-th subtree of the i-th ind
 	float *m_fitness; // m_fitness[i] is the fitness of the i-th ind
 
