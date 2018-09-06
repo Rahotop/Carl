@@ -60,6 +60,7 @@ class MSalgogenincpar
 	bool *m_not; // m_not[i*maxsize*width+j*width+k] is the sign of the k-th element of the j-th subtree of i-th ind
 	bool *m_prec;
 	bool *m_curr;
+	bool *m_in;
 	float *m_weights; // m_weights[i*maxsize+j] is the weight of the j-th subtree of the i-th ind
 	float *m_fitness; // m_fitness[i] is the fitness of the i-th ind
 
@@ -67,6 +68,7 @@ class MSalgogenincpar
 	unsigned int *m_Gsize;
 	unsigned int *m_Gtrees;
 	bool *m_Gnot;
+	bool *m_Gin;
 	float *m_Gweights;
 };
 

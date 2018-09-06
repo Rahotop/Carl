@@ -159,7 +159,7 @@ FnArrayInc msalgogeninc(MaxSat& ms, unsigned int indSize, unsigned int indWidth,
 }
 
 
-MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width) :	m_fnset({1,7,9,11,13}),
+MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width) :	m_fnset({1,7,9/*,11,13*/}),
 																									m_n(0),
 
 																									m_popsize(popsize),
@@ -171,12 +171,14 @@ MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, uns
 																									m_not(new bool[popsize*maxsize*width]),
 																									m_prec(new bool[popsize*maxsize]),
 																									m_curr(new bool[popsize*maxsize]),
+																									m_in(nullptr),
 																									m_weights(new float[popsize*maxsize]),
 																									m_fitness(new float[popsize]),
 
 																									m_Gsize(new unsigned int[popsize]),
 																									m_Gtrees(new unsigned int[popsize*maxsize*width]),
 																									m_Gnot(new bool[popsize*maxsize*width]),
+																									m_Gin(nullptr),
 																									m_Gweights(new float[popsize*maxsize])
 {
 	for(unsigned int i(0); i < popsize; ++i) m_size[i] = 0;
@@ -192,12 +194,16 @@ MSalgogenincpar::~MSalgogenincpar()
 	delete[] m_not;
 	delete[] m_prec;
 	delete[] m_curr;
+	if(m_in)
+		delete[] m_in;
 	delete[] m_weights;
 	delete[] m_fitness;
 
 	delete[] m_Gsize;
 	delete[] m_Gtrees;
 	delete[] m_Gnot;
+	if(m_Gin)
+		delete[] m_Gin;
 	delete[] m_Gweights;
 }
 
@@ -207,6 +213,8 @@ void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int n
 	m_n = ms.getN();
 	unsigned int *sorted = new unsigned int[m_popsize];
 	for(unsigned int i(0); i < m_popsize; ++i) sorted[i] = i;
+	m_in = new bool[m_popsize*m_maxsize*m_n];
+	m_Gin = new bool[m_popsize*m_maxsize*m_n];
 
 
 	// INIT POP
@@ -257,6 +265,7 @@ void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int n
 		std::swap(m_size, m_Gsize);
 		std::swap(m_trees, m_Gtrees);
 		std::swap(m_not, m_Gnot);
+		std::swap(m_in, m_Gin);
 		std::swap(m_weights, m_Gweights);
 
 
@@ -319,6 +328,8 @@ void MSalgogenincpar::addRandom(unsigned int index)
 {
 	if(m_size[index] < m_maxsize)
 	{
+		for(unsigned int i(0); i < m_n; ++i) m_in[index*m_maxsize*m_n + m_size[index]*m_n + i] = false;
+
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
 		unsigned int stack = 0;
 
@@ -332,7 +343,9 @@ void MSalgogenincpar::addRandom(unsigned int index)
 			}
 			else if((stack < 2) || (rand()%2))
 			{
-				m_trees[subtree + i] = (rand()%m_n) + 16;
+				unsigned int tmp = (rand()%m_n);
+				m_trees[subtree + i] = tmp + 16;
+				m_in[index*m_maxsize*m_n + m_size[index]*m_n + tmp] = true;
 				++stack;
 			}
 			else
@@ -358,6 +371,8 @@ void MSalgogenincpar::addRandom(unsigned int index, unsigned int next)
 	copy(index, next);
 	if(m_Gsize[next] < m_maxsize)
 	{
+		for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + i] = false;
+
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
 		unsigned int stack = 0;
 
@@ -371,7 +386,9 @@ void MSalgogenincpar::addRandom(unsigned int index, unsigned int next)
 			}
 			else if((stack < 2) || (rand()%2))
 			{
-				m_Gtrees[subtree + i] = (rand()%m_n) + 16;
+				unsigned int tmp = (rand()%m_n);
+				m_Gtrees[subtree + i] = tmp + 16;
+				m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + tmp] = true;
 				++stack;
 			}
 			else
@@ -409,6 +426,7 @@ void MSalgogenincpar::deleteTree(unsigned int index, unsigned int next, unsigned
 		unsigned int end = next*m_maxsize*m_width + m_Gsize[next]*m_width;
 		for(unsigned int i(0); i < m_width; ++i) m_Gtrees[replace + i] = m_Gtrees[end + i];
 		for(unsigned int i(0); i < m_width; ++i) m_Gnot[replace + i] = m_Gnot[end + i];
+		for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + tree*m_n + i] = m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + i];
 		m_Gweights[next*m_maxsize + tree] = m_Gweights[next*m_maxsize + m_Gsize[next]];
 	}
 }
@@ -423,6 +441,7 @@ void MSalgogenincpar::copy(unsigned int index, unsigned int next)
 
 	for(unsigned int i(0); i < tmp; ++i) m_Gtrees[subtreeG + i] = m_trees[subtree + i];
 	for(unsigned int i(0); i < tmp; ++i) m_Gnot[subtreeG + i] = m_not[subtree + i];
+	for(unsigned int i(0); i < m_maxsize*m_n; ++i) m_Gin[next*m_maxsize*m_n + i] = m_in[index*m_maxsize*m_n + i];
 
 	subtree = index*m_maxsize;
 	subtreeG = next*m_maxsize;
@@ -436,6 +455,7 @@ void MSalgogenincpar::copy(unsigned int index, unsigned int next, unsigned int t
 	unsigned int subtreeG = next*m_maxsize*m_width + tree*m_width;
 	for(unsigned int i(0); i < m_width; ++i) m_Gtrees[subtreeG + i] = m_trees[subtree + i];
 	for(unsigned int i(0); i < m_width; ++i) m_Gnot[subtreeG + i] = m_not[subtree + i];
+	for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + tree*m_n + i] = m_in[index*m_maxsize*m_n + tree*m_n + i];
 
 	m_Gweights[next*m_maxsize + tree] = m_weights[index*m_maxsize + tree];
 }
@@ -489,7 +509,7 @@ float MSalgogenincpar::evaluateinc(unsigned int ind, bool *s, unsigned int chang
 
 	for(unsigned int i(0); i < m_size[ind]; ++i)
 	{
-		unsigned int index = ind*m_maxsize*m_width + i*m_width;
+		unsigned int index = ind*m_maxsize*m_width + i*m_width;/*
 		bool update = false;
 		for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
 		{
@@ -498,10 +518,11 @@ float MSalgogenincpar::evaluateinc(unsigned int ind, bool *s, unsigned int chang
 				update = true;
 				break;
 			}
-		}
+		}*/
 		tmp[0] = m_prec[ind*m_maxsize + i];
 
-		if(update)
+		//if(update)
+		if(m_in[ind*m_maxsize*m_n + i*m_n + changed])
 		{
 			unsigned int stack = 0;
 			for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
