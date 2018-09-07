@@ -14,7 +14,8 @@ int main(int argc, char **argv)
 
 	MSalgogenincpar algo(100,100,15);
 
-	algo.run(test, 5, 10);
+	algo.run(test, 5, 1000);
+
 
 	//msalgogeninc(test, 100, 15, 5, 1000, 100);
 

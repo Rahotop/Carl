@@ -1,6 +1,7 @@
 #ifndef MSALGOGEN_HPP_INCLUDED
 #define MSALGOGEN_HPP_INCLUDED
 
+#include <sstream>
 #include <utility>
 #include <vector>
 #include <iterator>
@@ -23,7 +24,7 @@ class MSalgogenincpar
 	MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width);
 	~MSalgogenincpar();
 
-	void run(const MaxSat& ms, unsigned int newSize, unsigned int nbIt);
+	void run(MaxSat& ms, unsigned int newSize, unsigned int nbIt);
 
 	private:
 	
@@ -31,6 +32,7 @@ class MSalgogenincpar
 
 	void addRandom(unsigned int index);
 	void addRandom(unsigned int index, unsigned int next);
+	void add(unsigned int index, unsigned int tree, unsigned int next);
 
 	void deleteRandom(unsigned int index, unsigned int next);
 	void deleteTree(unsigned int index, unsigned int next, unsigned int tree);
@@ -41,9 +43,11 @@ class MSalgogenincpar
 	float evaluate(unsigned int index, bool *s);
 	float evaluateinc(unsigned int index, bool *s, unsigned int changed);
 	void acceptCurr(unsigned int ind);
-	bool* localsearch(unsigned int index);
+	bool* localsearch(unsigned int index, unsigned int *nbEval = nullptr);
+	
+	bool* getActivation(unsigned int index) const;
 
-	void show(unsigned int index);
+	void show(unsigned int index, std::ostream& out);
 
 	// PARAM
 	std::vector<unsigned int> m_fnset;

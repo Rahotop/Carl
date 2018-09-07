@@ -144,3 +144,33 @@ bool* localsearch(FnArrayInc& fn)
 
 	return s;
 }
+
+bool *ils(MaxSat& ms, unsigned int cycles)
+{
+	std::ofstream out("ils");
+	bool *best = localsearch(ms);
+	float score = ms.evaluate(best);
+	out << "0 " << score << "\n";
+
+	for(unsigned int i(0); i < cycles; ++i)
+	{
+		bool *s = localsearch(ms);
+		float tmp = ms.evaluate(s);
+
+		if(tmp > score)
+		{
+			delete[] best;
+			best = s;
+			score = tmp;
+		}
+		out << i+1 << " " << score << "\n";
+	}
+
+	out << cycles << " " << score << "\n";
+
+	return best;
+}
+
+
+
+

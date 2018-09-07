@@ -13,4 +13,6 @@ bool* localsearch(MSmemory& mm);
 bool* localsearch(const FnArray& fn);
 bool* localsearch(FnArrayInc& fn);
 
+bool* ils(MaxSat& ms, unsigned int cycles);
+
 #endif

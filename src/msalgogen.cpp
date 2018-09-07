@@ -159,7 +159,7 @@ FnArrayInc msalgogeninc(MaxSat& ms, unsigned int indSize, unsigned int indWidth,
 }
 
 
-MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width) :	m_fnset({1,7,9/*,11,13*/}),
+MSalgogenincpar::MSalgogenincpar(unsigned int popsize, unsigned int maxsize, unsigned int width) :	m_fnset({1,7,9,11,13}),
 																									m_n(0),
 
 																									m_popsize(popsize),
@@ -207,7 +207,7 @@ MSalgogenincpar::~MSalgogenincpar()
 	delete[] m_Gweights;
 }
 
-void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int nbIt)
+void MSalgogenincpar::run(MaxSat& ms, unsigned int newSize, unsigned int nbIt)
 {
 	// PARAM
 	m_n = ms.getN();
@@ -226,7 +226,11 @@ void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int n
 		}
 	}
 
-	std::ofstream o("test");
+
+	// OUTPUT
+	std::ofstream data("data");
+	std::ofstream res("results.txt");
+	unsigned int nbEval = 0;
 
 
 	// ALGOGEN
@@ -270,22 +274,73 @@ void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int n
 
 
 		// EVAL
+		unsigned int meanNbEval = 0;
 		//#pragma omp parallel for
 		for(unsigned int i = 0; i < m_popsize; ++i)
-		{
-			float tmp = 0.;
+		{/*
+			bool **act = new bool*[10];
+			float *score = new float[10];
+			float *scoreobj = new float[10];
+
 			for(unsigned int j(0); j < 10; ++j)
 			{
-				bool *s = localsearch(i);
-				tmp += ms.evaluate(s);
+				bool *s = localsearch(i, &meanNbEval);
+				score[j] = evaluate(i, s);
+				act[j] = getActivation(i);
+				scoreobj[j] = ms.evaluate(s);
 				delete[] s;
 			}
-			m_fitness[i] = tmp / 10.;
+
+
+			float *adj = new float[m_size[i]];
+			for(unsigned int j(0); j < m_size[i]; ++j) adj[j] = 0.;
+			unsigned int count = 0;
+
+			for(unsigned int j(0); j < 10; ++j)
+			{
+				for(unsigned int k(j+1); k < 10; ++k)
+				{
+					++count;
+					float delta = score[j]/score[k] - scoreobj[j]/scoreobj[k];
+					delta /= 2;
+
+					unsigned int jnk = 0;
+					unsigned int njk = 0;
+					for(unsigned int l(0); l < m_size[i]; ++l)
+					{
+						jnk += (act[j][l] && !act[k][l]);
+						njk += (!act[j][l] && act[k][l]);
+					}
+					if(jnk) for(unsigned int l(0); l < m_size[i]; ++l) adj[l] += delta/jnk * score[j] * (act[j][l] && !act[k][l]);
+					if(njk) for(unsigned int l(0); l < m_size[i]; ++l) adj[l] -= delta/njk * score[j] * (!act[j][l] && act[k][l]);
+				}
+			}
+
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] += adj[j]/count;
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] = (m_weights[i*m_maxsize + j] > 1) ? 1 : m_weights[i*m_maxsize + j];
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] = (m_weights[i*m_maxsize + j] < -1) ? -1 : m_weights[i*m_maxsize + j];
+
+			delete[] adj;
+
+
+			delete[] scoreobj;
+			delete[] score;
+			delete[] act;*/
+
+			float tmp = 0;
+			for(unsigned int j(0); j < 10; ++j)
+			{
+				bool *s = localsearch(i, &meanNbEval);
+				tmp += ms.evaluate(s);
+				delete s;
+			}
+			m_fitness[i] = tmp/10.;
 		}
+		nbEval += meanNbEval;
+		meanNbEval /= (m_popsize*10);
 
 
 		// SORT
-
 		bool tmp = true;
 		while(tmp)
 		{
@@ -300,14 +355,18 @@ void MSalgogenincpar::run(const MaxSat& ms, unsigned int newSize, unsigned int n
 			}
 		}
 
+
 		// SAVE
-		o << it << " ";
-		for(unsigned int i(0); i < m_popsize; ++i)
-		{
-			o << m_fitness[sorted[i]] << " ";
-		}
-		o << "\n";
+		data << it << " " << m_fitness[sorted[m_popsize-1]] << " " << m_size[sorted[m_popsize-1]] << " " << meanNbEval << "\n";
 	}
+
+	res << "nb eval (solutions) : " << nbEval << "\nnb eval (f obj) : " << ms.getnbeval() << "\n\nFitness max : " << m_fitness[sorted[m_popsize-1]] << "\n";
+	show(sorted[m_popsize-1], res);
+
+	bool *s = ils(ms, 2000);
+	std::ofstream ilsout("ils", std::ios::app);
+	ilsout << "\n0 " << ms.evaluate(s) << "\n" << nbIt << " " << ms.evaluate(s) << std::endl;
+	delete[] s;
 
 	delete[] sorted;
 }
@@ -328,11 +387,12 @@ void MSalgogenincpar::addRandom(unsigned int index)
 {
 	if(m_size[index] < m_maxsize)
 	{
-		for(unsigned int i(0); i < m_n; ++i) m_in[index*m_maxsize*m_n + m_size[index]*m_n + i] = false;
+		for(unsigned int i(0); i < m_n; ++i) m_in[index*m_maxsize*m_n + i*m_n + m_size[index]] = false;
 
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
 		unsigned int stack = 0;
 
+		unsigned int indexmaxsizen = index*m_maxsize*m_n;
 		unsigned int subtree = index*m_maxsize*m_width + m_size[index]*m_width;
 		for(unsigned int i(0); i < width; ++i)
 		{
@@ -345,7 +405,7 @@ void MSalgogenincpar::addRandom(unsigned int index)
 			{
 				unsigned int tmp = (rand()%m_n);
 				m_trees[subtree + i] = tmp + 16;
-				m_in[index*m_maxsize*m_n + m_size[index]*m_n + tmp] = true;
+				m_in[indexmaxsizen + tmp*m_n + m_size[index]] = true;
 				++stack;
 			}
 			else
@@ -371,11 +431,12 @@ void MSalgogenincpar::addRandom(unsigned int index, unsigned int next)
 	copy(index, next);
 	if(m_Gsize[next] < m_maxsize)
 	{
-		for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + i] = false;
+		for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + i*m_n + m_Gsize[next]] = false;
 
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
 		unsigned int stack = 0;
 
+		unsigned int nextmaxsizen = next*m_maxsize*m_n;
 		unsigned int subtree = next*m_maxsize*m_width + m_Gsize[next]*m_width;
 		for(unsigned int i(0); i < width; ++i)
 		{
@@ -388,7 +449,7 @@ void MSalgogenincpar::addRandom(unsigned int index, unsigned int next)
 			{
 				unsigned int tmp = (rand()%m_n);
 				m_Gtrees[subtree + i] = tmp + 16;
-				m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + tmp] = true;
+				m_Gin[nextmaxsizen + tmp*m_n + m_Gsize[next]] = true;
 				++stack;
 			}
 			else
@@ -405,6 +466,25 @@ void MSalgogenincpar::addRandom(unsigned int index, unsigned int next)
 		for(unsigned int i(0); i < width; ++i) m_Gnot[subtree + i] = rand()%2;
 
 		m_Gweights[next*m_maxsize + m_Gsize[next]] = ((float)(rand()%10000))/10000.;
+		++m_Gsize[next];
+	}
+}
+
+void MSalgogenincpar::add(unsigned int index, unsigned int tree, unsigned int next)
+{
+	if(m_Gsize[next] < m_maxsize)
+	{
+		unsigned int subtree = index*m_maxsize*m_width + tree*m_width;
+		unsigned int subtreeG = next*m_maxsize*m_width + m_Gsize[next]*m_width;
+		for(unsigned int i(0); i < m_width; ++i) m_Gtrees[subtreeG + i] = m_trees[subtree + i];
+		for(unsigned int i(0); i < m_width; ++i) m_Gnot[subtreeG + i] = m_not[subtree + i];
+
+		subtree = index*m_maxsize*m_n;
+		subtreeG = next*m_maxsize*m_n;
+		for(unsigned int i(0); i < m_n; ++i) m_Gin[subtreeG + i*m_n + m_Gsize[next]] = m_in[subtree + i*m_n + tree];
+
+		m_Gweights[next*m_maxsize + m_Gsize[next]] = m_weights[index*m_maxsize + tree];
+
 		++m_Gsize[next];
 	}
 }
@@ -426,7 +506,10 @@ void MSalgogenincpar::deleteTree(unsigned int index, unsigned int next, unsigned
 		unsigned int end = next*m_maxsize*m_width + m_Gsize[next]*m_width;
 		for(unsigned int i(0); i < m_width; ++i) m_Gtrees[replace + i] = m_Gtrees[end + i];
 		for(unsigned int i(0); i < m_width; ++i) m_Gnot[replace + i] = m_Gnot[end + i];
-		for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + tree*m_n + i] = m_Gin[next*m_maxsize*m_n + m_Gsize[next]*m_n + i];
+
+		replace = next*m_maxsize*m_n;
+		end = next*m_maxsize*m_n;
+		for(unsigned int i(0); i < m_n; ++i) m_Gin[replace + i*m_n + tree] = m_Gin[end + i*m_n + m_Gsize[next]];
 		m_Gweights[next*m_maxsize + tree] = m_Gweights[next*m_maxsize + m_Gsize[next]];
 	}
 }
@@ -441,7 +524,10 @@ void MSalgogenincpar::copy(unsigned int index, unsigned int next)
 
 	for(unsigned int i(0); i < tmp; ++i) m_Gtrees[subtreeG + i] = m_trees[subtree + i];
 	for(unsigned int i(0); i < tmp; ++i) m_Gnot[subtreeG + i] = m_not[subtree + i];
-	for(unsigned int i(0); i < m_maxsize*m_n; ++i) m_Gin[next*m_maxsize*m_n + i] = m_in[index*m_maxsize*m_n + i];
+
+	subtree = index*m_maxsize*m_n;
+	subtreeG = next*m_maxsize*m_n;
+	for(unsigned int i(0); i < m_maxsize*m_n; ++i) m_Gin[subtreeG + i] = m_in[subtree + i];
 
 	subtree = index*m_maxsize;
 	subtreeG = next*m_maxsize;
@@ -455,7 +541,10 @@ void MSalgogenincpar::copy(unsigned int index, unsigned int next, unsigned int t
 	unsigned int subtreeG = next*m_maxsize*m_width + tree*m_width;
 	for(unsigned int i(0); i < m_width; ++i) m_Gtrees[subtreeG + i] = m_trees[subtree + i];
 	for(unsigned int i(0); i < m_width; ++i) m_Gnot[subtreeG + i] = m_not[subtree + i];
-	for(unsigned int i(0); i < m_n; ++i) m_Gin[next*m_maxsize*m_n + tree*m_n + i] = m_in[index*m_maxsize*m_n + tree*m_n + i];
+
+	subtree = index*m_maxsize*m_n;
+	subtreeG = next*m_maxsize*m_n;
+	for(unsigned int i(0); i < m_n; ++i) m_Gin[subtreeG + i*m_n + tree] = m_in[subtree + i*m_n + tree];
 
 	m_Gweights[next*m_maxsize + tree] = m_weights[index*m_maxsize + tree];
 }
@@ -507,22 +596,15 @@ float MSalgogenincpar::evaluateinc(unsigned int ind, bool *s, unsigned int chang
 
 	bool *tmp = new bool[m_width];
 
+	unsigned int indmaxsize = ind*m_maxsize;
+	unsigned int indmaxsizewidth = indmaxsize*m_width;
+	unsigned int in = indmaxsize*m_n + changed*m_n;
 	for(unsigned int i(0); i < m_size[ind]; ++i)
 	{
-		unsigned int index = ind*m_maxsize*m_width + i*m_width;/*
-		bool update = false;
-		for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
-		{
-			if((m_trees[index+j] - 16) == changed)
-			{
-				update = true;
-				break;
-			}
-		}*/
-		tmp[0] = m_prec[ind*m_maxsize + i];
+		unsigned int index = indmaxsizewidth + i*m_width;
+		tmp[0] = m_prec[indmaxsize + i];
 
-		//if(update)
-		if(m_in[ind*m_maxsize*m_n + i*m_n + changed])
+		if(m_in[in + i])
 		{
 			unsigned int stack = 0;
 			for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
@@ -547,8 +629,8 @@ float MSalgogenincpar::evaluateinc(unsigned int ind, bool *s, unsigned int chang
 				}
 			}
 		}
-		sum += tmp[0] * m_weights[ind*m_maxsize + i];
-		m_curr[ind*m_maxsize + i] = tmp[0];
+		sum += tmp[0] * m_weights[indmaxsize + i];
+		m_curr[indmaxsize + i] = tmp[0];
 	}
 
 	delete[] tmp;
@@ -563,11 +645,12 @@ void MSalgogenincpar::acceptCurr(unsigned int ind)
 	}
 }
 
-bool* MSalgogenincpar::localsearch(unsigned int index)
+bool* MSalgogenincpar::localsearch(unsigned int index, unsigned int *nbEval)
 {
 	bool *s = new bool[m_n];
 	for(unsigned int i(0); i < m_n; ++i) s[i] = rand()%2;
 	float score = evaluate(index, s);
+	unsigned int tmpEval = 1;
 
 	std::vector<unsigned int> next;
 	for(unsigned int i(0); i < m_n; ++i) next.push_back(i);
@@ -583,6 +666,7 @@ bool* MSalgogenincpar::localsearch(unsigned int index)
 		{
 			s[next[i]] = !s[next[i]];
 			float tmp = evaluateinc(index, s, next[i]);
+			++tmpEval;
 
 			if(tmp > score)
 			{
@@ -598,20 +682,33 @@ bool* MSalgogenincpar::localsearch(unsigned int index)
 		}
 	}
 
+	if(nbEval)
+		*nbEval += tmpEval;
+
 	return s;
 }
 
-void MSalgogenincpar::show(unsigned int index)
+bool* MSalgogenincpar::getActivation(unsigned int index) const
 {
-	std::cout << m_size[index] << std::endl;
+	bool *act = new bool[m_maxsize];
+	for(unsigned int i(0); i < m_maxsize; ++i)
+	{
+		act[i] = m_prec[index*m_maxsize + i];
+	}
+	return act;
+}
+
+void MSalgogenincpar::show(unsigned int index, std::ostream& out)
+{
+	out << m_size[index] << std::endl;
 	for(unsigned int i(0); i < m_size[index]; ++i)
 	{
-		std::cout << m_weights[index*m_maxsize + i] << std::endl;
+		out << m_weights[index*m_maxsize + i] << std::endl;
 
-		for(unsigned int j(0); j < m_width; ++j) std::cout << m_trees[index*m_maxsize*m_width + i*m_width + j] << " ";
-		std::cout << std::endl;
-		for(unsigned int j(0); j < m_width; ++j) std::cout << m_not[index*m_maxsize*m_width + i*m_width + j] << " ";
-		std::cout << std::endl << std::endl;
+		for(unsigned int j(0); j < m_width; ++j) out << m_trees[index*m_maxsize*m_width + i*m_width + j] << " ";
+		out << std::endl;
+		for(unsigned int j(0); j < m_width; ++j) out << m_not[index*m_maxsize*m_width + i*m_width + j] << " ";
+		out << std::endl << std::endl;
 	}
 }
 

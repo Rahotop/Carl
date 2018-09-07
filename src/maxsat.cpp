@@ -47,9 +47,9 @@ MaxSat::~MaxSat()
 		delete[] m_clauses;
 }
 
-float MaxSat::evaluate(bool *s) const
+float MaxSat::evaluate(bool *s)
 {
-	//++m_nbeval;
+	++m_nbeval;
 
 	float score = 0;
 	bool sat = false;
