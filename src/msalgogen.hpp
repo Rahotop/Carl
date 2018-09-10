@@ -1,6 +1,7 @@
 #ifndef MSALGOGEN_HPP_INCLUDED
 #define MSALGOGEN_HPP_INCLUDED
 
+#include <iomanip>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -43,7 +44,7 @@ class MSalgogenincpar
 	float evaluate(unsigned int index, bool *s);
 	float evaluateinc(unsigned int index, bool *s, unsigned int changed);
 	void acceptCurr(unsigned int ind);
-	bool* localsearch(unsigned int index, unsigned int *nbEval = nullptr);
+	bool* localsearchind(unsigned int index, unsigned int *nbEval = nullptr);
 	
 	bool* getActivation(unsigned int index) const;
 
@@ -75,5 +76,7 @@ class MSalgogenincpar
 	bool *m_Gin;
 	float *m_Gweights;
 };
+
+unsigned int distance(bool *s1, bool *s2, unsigned int n);
 
 #endif

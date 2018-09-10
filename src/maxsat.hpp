@@ -12,6 +12,7 @@ class MaxSat
 	~MaxSat();
 
 	float evaluate(bool *s);
+	bool islocopt(bool *s);
 
 	inline unsigned int getnbeval() const { return m_nbeval; }
 	inline unsigned int getN() const { return m_n; }

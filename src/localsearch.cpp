@@ -1,6 +1,6 @@
 #include "localsearch.hpp"
 
-bool* localsearch(MaxSat& ms)
+bool* localsearch(MaxSat& ms, unsigned int *nbEval)
 {
 	bool *s = new bool[ms.getN()];
 	for(unsigned int i(0); i < ms.getN(); ++i) s[i] = rand()%2;
@@ -9,6 +9,7 @@ bool* localsearch(MaxSat& ms)
 	std::vector<unsigned int> next;
 	for(unsigned int i(0); i < ms.getN(); ++i) next.push_back(i);
 
+	unsigned int tmpnbeval = ms.getnbeval();
 	bool improved = true;
 
 	while(improved)
@@ -34,10 +35,13 @@ bool* localsearch(MaxSat& ms)
 		}
 	}
 
+	if(nbEval)
+		*nbEval += ms.getnbeval() - tmpnbeval;
+
 	return s;
 }
 
-bool* localsearch(MSmemory& mm)
+bool* localsearch(MSmemory& mm, unsigned int *nbEval)
 {
 	bool *s = new bool[mm.getN()];
 	for(unsigned int i(0); i < mm.getN(); ++i) s[i] = rand()%2;
@@ -46,6 +50,7 @@ bool* localsearch(MSmemory& mm)
 	std::vector<unsigned int> next;
 	for(unsigned int i(0); i < mm.getN(); ++i) next.push_back(i);
 
+	unsigned int tmpnbeval = mm.getnbeval();
 	bool improved = true;
 
 	while(improved)
@@ -71,10 +76,13 @@ bool* localsearch(MSmemory& mm)
 		}
 	}
 
+	if(nbEval)
+		*nbEval += mm.getnbeval() - tmpnbeval;
+
 	return s;
 }
 
-bool* localsearch(const FnArray& fn)
+bool* localsearch(const FnArray& fn, unsigned int *nbEval)
 {
 	bool *s = new bool[fn.getN()];
 	for(unsigned int i(0); i < fn.getN(); ++i) s[i] = rand()%2;
@@ -83,6 +91,7 @@ bool* localsearch(const FnArray& fn)
 	std::vector<unsigned int> next;
 	for(unsigned int i(0); i < fn.getN(); ++i) next.push_back(i);
 
+	unsigned int tmpnbeval = 1;
 	bool improved = true;
 
 	while(improved)
@@ -94,6 +103,7 @@ bool* localsearch(const FnArray& fn)
 		{
 			s[next[i]] = !s[next[i]];
 			float tmp = fn.evaluate(s);
+			++tmpnbeval;
 
 			if(tmp > score)
 			{
@@ -108,10 +118,13 @@ bool* localsearch(const FnArray& fn)
 		}
 	}
 
+	if(nbEval)
+		*nbEval += tmpnbeval;
+
 	return s;
 }
 
-bool* localsearch(FnArrayInc& fn)
+bool* localsearch(FnArrayInc& fn, unsigned int *nbEval)
 {
 	bool *s = new bool[fn.getN()];
 	for(unsigned int i(0); i < fn.getN(); ++i) s[i] = rand()%2;
@@ -120,6 +133,7 @@ bool* localsearch(FnArrayInc& fn)
 	std::vector<unsigned int> next;
 	for(unsigned int i(0); i < fn.getN(); ++i) next.push_back(i);
 
+	unsigned int tmpnbeval = 1;
 	bool improved = true;
 
 	while(improved)
@@ -142,19 +156,23 @@ bool* localsearch(FnArrayInc& fn)
 		}
 	}
 
+	if(nbEval)
+		*nbEval += tmpnbeval;
+
 	return s;
 }
 
-bool *ils(MaxSat& ms, unsigned int cycles)
+bool *ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
 {
 	std::ofstream out("ils");
-	bool *best = localsearch(ms);
+	bool *best = localsearch(ms, nbEval);
 	float score = ms.evaluate(best);
-	out << "0 " << score << "\n";
+	float scoreinit = score;
+	out << "0 " << score << " 0\n";
 
 	for(unsigned int i(0); i < cycles; ++i)
 	{
-		bool *s = localsearch(ms);
+		bool *s = localsearch(ms, nbEval);
 		float tmp = ms.evaluate(s);
 
 		if(tmp > score)
@@ -162,8 +180,12 @@ bool *ils(MaxSat& ms, unsigned int cycles)
 			delete[] best;
 			best = s;
 			score = tmp;
+			out << i+1 << " " << score << " " << *nbEval << "\n";
 		}
-		out << i+1 << " " << score << "\n";
+		else
+		{
+			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+		}
 	}
 
 	out << cycles << " " << score << "\n";

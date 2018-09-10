@@ -248,13 +248,21 @@ void MSalgogenincpar::run(MaxSat& ms, unsigned int newSize, unsigned int nbIt)
 			else if(rand()%2)
 			{
 				//mutation
-				if(rand()%2)
+				if(!(rand()%3))
 				{
 					addRandom(rand()%m_popsize, i);
 				}
-				else
+				else if(rand()%2)
 				{
 					deleteRandom(rand()%m_popsize, i);
+				}
+				else
+				{
+					copy(rand()%m_popsize, i);
+					if(m_Gsize[i])
+						m_Gweights[i*m_maxsize+rand()%m_Gsize[i]] += ((float)(rand()%1000))/10000.-0.05;
+					else
+						addRandom(rand()%m_popsize, i);
 				}
 			}
 			else
@@ -284,7 +292,7 @@ void MSalgogenincpar::run(MaxSat& ms, unsigned int newSize, unsigned int nbIt)
 
 			for(unsigned int j(0); j < 10; ++j)
 			{
-				bool *s = localsearch(i, &meanNbEval);
+				bool *s = localsearchind(i, &meanNbEval);
 				score[j] = evaluate(i, s);
 				act[j] = getActivation(i);
 				scoreobj[j] = ms.evaluate(s);
@@ -330,7 +338,7 @@ void MSalgogenincpar::run(MaxSat& ms, unsigned int newSize, unsigned int nbIt)
 			float tmp = 0;
 			for(unsigned int j(0); j < 10; ++j)
 			{
-				bool *s = localsearch(i, &meanNbEval);
+				bool *s = localsearchind(i, &meanNbEval);
 				tmp += ms.evaluate(s);
 				delete s;
 			}
@@ -360,15 +368,156 @@ void MSalgogenincpar::run(MaxSat& ms, unsigned int newSize, unsigned int nbIt)
 		data << it << " " << m_fitness[sorted[m_popsize-1]] << " " << m_size[sorted[m_popsize-1]] << " " << meanNbEval << "\n";
 	}
 
-	res << "nb eval (solutions) : " << nbEval << "\nnb eval (f obj) : " << ms.getnbeval() << "\n\nFitness max : " << m_fitness[sorted[m_popsize-1]] << "\n";
+	// RES
+	res << "nb eval (solutions) : " << nbEval << "\nnb eval (f obj) : " << ms.getnbeval() << "\n\n#ILS :\n#Fitness max : ";
+
+
+	// CORRELATION
+	data << "\n";
+	for(unsigned int i(0); i < 1000; ++i) //rand
+	{
+		bool *s = new bool[m_n];
+		for(unsigned int j(0); j < m_n; ++j) s[j] = rand()%2;
+		data << evaluate(sorted[m_popsize-1], s) << " " << ms.evaluate(s) << "\n";
+		delete[] s;
+	}
+	data << "\n";
+	for(unsigned int i(0); i < 1000; ++i) //ls f obj
+	{
+		bool *s = localsearch(ms);
+		data << evaluate(sorted[m_popsize-1], s) << " " << ms.evaluate(s) << "\n";
+	}
+	data << "\n";
+	for(unsigned int i(0); i < 1000; ++i) //ls f ind
+	{
+		bool *s = localsearchind(sorted[m_popsize-1]);
+		data << evaluate(sorted[m_popsize-1], s) << " " << ms.evaluate(s) << "\n";
+	}
+	data << "\n";
+
+	// ILS
+	bool *bestils = nullptr;
+	{
+		unsigned int nbeval = 0;
+		bool *s = ils(ms, 5000, &nbeval);
+		std::ofstream ilsout("ils", std::ios::app);
+		ilsout << "\n0 " << ms.evaluate(s) << "\n" << nbIt << " " << ms.evaluate(s) << std::endl;
+		res << ms.evaluate(s) << "\n#nb eval : " << nbeval;
+		data << evaluate(sorted[m_popsize-1], s) << " " << ms.evaluate(s) << "\n\n"; //opt glb
+		bestils = s;
+	}
+
+	// FREQ
+	std::vector<bool*> lsobj;
+	std::vector<bool*> lsind;
+	std::vector<unsigned int> fobj;
+	std::vector<unsigned int> find;
+
+	for(unsigned int i(0); i < 100; ++i)
+	{
+		bool *s = localsearch(ms);
+		bool tmp = true;
+		for(unsigned int j(0); j < lsobj.size(); ++j)
+		{
+			if(!distance(s,lsobj[j],m_n))
+			{
+				delete[] s;
+				++fobj[j];
+				tmp = false;
+				break;
+			}
+		}
+		if(tmp)
+		{
+			lsobj.push_back(s);
+			fobj.push_back(1);
+		}
+	}
+	for(unsigned int i(0); i < 100; ++i)
+	{
+		bool *s = localsearchind(sorted[m_popsize-1]);
+		bool tmp = true;
+		for(unsigned int j(0); j < lsind.size(); ++j)
+		{
+			if(!distance(s,lsind[j],m_n))
+			{
+				delete[] s;
+				++find[j];
+				tmp = false;
+				break;
+			}
+		}
+		if(tmp)
+		{
+			lsind.push_back(s);
+			find.push_back(1);
+		}
+	}
+
+	// SORT
+	unsigned int *sortobj = new unsigned int[lsobj.size()];
+	for(unsigned int i(0); i < lsobj.size(); ++i) sortobj[i] = i;
+	unsigned int *sortind = new unsigned int[lsind.size()];
+	for(unsigned int i(0); i < lsind.size(); ++i) sortind[i] = i;
+
+	bool tmp = true;
+	while(tmp)
+	{
+		tmp = false;
+		for(unsigned int i(1); i < lsobj.size(); ++i)
+		{
+			if(ms.evaluate(lsobj[sortobj[i-1]]) < ms.evaluate(lsobj[sortobj[i]]))
+			{
+				std::swap(sortobj[i-1], sortobj[i]);
+				tmp = true;
+			}
+		}
+	}
+	tmp = true;
+	while(tmp)
+	{
+		tmp = false;
+		for(unsigned int i(1); i < lsind.size(); ++i)
+		{
+			if(ms.evaluate(lsind[sortind[i-1]]) < ms.evaluate(lsind[sortind[i]]) || (ms.evaluate(lsind[sortind[i-1]]) == ms.evaluate(lsind[sortind[i]]) && find[sortind[i-1]] < find[sortind[i]]))
+			{
+				std::swap(sortind[i-1], sortind[i]);
+				tmp = true;
+			}
+		}
+	}
+
+	// FREQ RES
+	res << "\n\nFreq :\n";
+	res << std::setw(21) << "Fonction objectif" << " " << std::setw(55) << "Fonction trouvée" << "\n\n";
+	res << std::setw(21) << "Fitness moyenne :" << " " << std::setw(54) << "Fitness moyenne :" << "\n";
+	float moyennescore = 0;
+	for(unsigned int i(0); i < lsobj.size(); ++i) moyennescore += ms.evaluate(lsobj[i]);
+	res << std::setw(21) << moyennescore/lsobj.size() << " ";
+	moyennescore = 0;
+	for(unsigned int i(0); i < lsind.size(); ++i) moyennescore += ms.evaluate(lsind[i]);
+	res << std::setw(54) << moyennescore/lsind.size() << "\n\n";
+	res << std::setw(10) << "Fitness" << " " << std::setw(10) << "Frequence" << " " << std::setw(10) << "Fitness" << " " << std::setw(10) << "Frequence" << " ";
+	res << std::setw(10) << "opt loc" << " " << std::setw(10) << "Dist ils" << " " << std::setw(10) << "Dist best" << "\n";
+
+
+	for(unsigned int i(0); i < lsobj.size(); ++i)
+	{
+		res << std::setw(10) << ms.evaluate(lsobj[sortobj[i]]) << " " << std::setw(10)  << fobj[sortobj[i]] << " ";
+		if(i < lsind.size())
+		{
+			res << std::setw(10)  << ms.evaluate(lsind[sortind[i]]) << " " << std::setw(10)  << find[sortind[i]] << " " << std::setw(10) << ms.islocopt(lsind[sortind[i]]);
+			res << " " << std::setw(10) << distance(bestils,lsind[sortind[i]],m_n) << " " << std::setw(10) << distance(lsind[sortind[0]],lsind[sortind[i]],m_n);
+		}
+		res << "\n";
+	}
+
+	// BEST
+	res << "\n\nFitness max : " << m_fitness[sorted[m_popsize-1]] << "\n";
 	show(sorted[m_popsize-1], res);
 
-	bool *s = ils(ms, 2000);
-	std::ofstream ilsout("ils", std::ios::app);
-	ilsout << "\n0 " << ms.evaluate(s) << "\n" << nbIt << " " << ms.evaluate(s) << std::endl;
-	delete[] s;
-
 	delete[] sorted;
+	delete[] bestils;
 }
 
 void MSalgogenincpar::crossover(unsigned int p1, unsigned int p2, unsigned next)
@@ -645,7 +794,7 @@ void MSalgogenincpar::acceptCurr(unsigned int ind)
 	}
 }
 
-bool* MSalgogenincpar::localsearch(unsigned int index, unsigned int *nbEval)
+bool* MSalgogenincpar::localsearchind(unsigned int index, unsigned int *nbEval)
 {
 	bool *s = new bool[m_n];
 	for(unsigned int i(0); i < m_n; ++i) s[i] = rand()%2;
@@ -710,6 +859,16 @@ void MSalgogenincpar::show(unsigned int index, std::ostream& out)
 		for(unsigned int j(0); j < m_width; ++j) out << m_not[index*m_maxsize*m_width + i*m_width + j] << " ";
 		out << std::endl << std::endl;
 	}
+}
+
+unsigned int distance(bool *s1, bool *s2, unsigned int n)
+{
+	unsigned int tmp = 0;
+	for(unsigned int i(0); i < n; ++i)
+	{
+		tmp += s1[i] != s2[i];
+	}
+	return tmp;
 }
 
 

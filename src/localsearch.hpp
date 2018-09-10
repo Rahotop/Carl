@@ -8,11 +8,11 @@
 #include "msmemory.hpp"
 #include "fnarray.hpp"
 
-bool* localsearch(MaxSat& ms);
-bool* localsearch(MSmemory& mm);
-bool* localsearch(const FnArray& fn);
-bool* localsearch(FnArrayInc& fn);
+bool* localsearch(MaxSat& ms, unsigned int *nbEval = nullptr);
+bool* localsearch(MSmemory& mm, unsigned int *nbEval = nullptr);
+bool* localsearch(const FnArray& fn, unsigned int *nbEval = nullptr);
+bool* localsearch(FnArrayInc& fn, unsigned int *nbEval = nullptr);
 
-bool* ils(MaxSat& ms, unsigned int cycles);
+bool* ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval = nullptr);
 
 #endif
