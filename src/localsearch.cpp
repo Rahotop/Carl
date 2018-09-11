@@ -41,6 +41,47 @@ bool* localsearch(MaxSat& ms, unsigned int *nbEval)
 	return s;
 }
 
+bool* localsearch(NK& nk, unsigned int *nbEval)
+{
+	bool *s = new bool[nk.getN()];
+	for(unsigned int i(0); i < nk.getN(); ++i) s[i] = rand()%2;
+	float score = nk.evaluate(s);
+
+	std::vector<unsigned int> next;
+	for(unsigned int i(0); i < nk.getN(); ++i) next.push_back(i);
+
+	unsigned int tmpnbeval = nk.getnbeval();
+	bool improved = true;
+
+	while(improved)
+	{
+		std::random_shuffle(next.begin(), next.end());
+		improved = false;
+
+		for(unsigned int i(0); i < nk.getN(); ++i)
+		{
+			s[next[i]] = !s[next[i]];
+			float tmp = nk.evaluate(s);
+
+			if(tmp > score)
+			{
+				score = tmp;
+				improved = true;
+				break;
+			}
+			else
+			{
+				s[next[i]] = !s[next[i]];
+			}
+		}
+	}
+
+	if(nbEval)
+		*nbEval += nk.getnbeval() - tmpnbeval;
+
+	return s;
+}
+
 bool* localsearch(MSmemory& mm, unsigned int *nbEval)
 {
 	bool *s = new bool[mm.getN()];
@@ -174,6 +215,37 @@ bool *ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
 	{
 		bool *s = localsearch(ms, nbEval);
 		float tmp = ms.evaluate(s);
+
+		if(tmp > score)
+		{
+			delete[] best;
+			best = s;
+			score = tmp;
+			out << i+1 << " " << score << " " << *nbEval << "\n";
+		}
+		else
+		{
+			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+		}
+	}
+
+	out << cycles << " " << score << "\n";
+
+	return best;
+}
+
+bool *ils(NK& nk, unsigned int cycles, unsigned int *nbEval)
+{
+	std::ofstream out("ils");
+	bool *best = localsearch(nk, nbEval);
+	float score = nk.evaluate(best);
+	float scoreinit = score;
+	out << "0 " << score << " 0\n";
+
+	for(unsigned int i(0); i < cycles; ++i)
+	{
+		bool *s = localsearch(nk, nbEval);
+		float tmp = nk.evaluate(s);
 
 		if(tmp > score)
 		{
