@@ -13,6 +13,8 @@
 #include "fnarray.hpp"
 #include "msmemory.hpp"
 
+unsigned int distance(bool *s1, bool *s2, unsigned int n);
+
 class AlgoGen
 {
 	public:
@@ -20,15 +22,10 @@ class AlgoGen
 	AlgoGen(unsigned int popsize, unsigned int maxsize, unsigned int width);
 	~AlgoGen();
 
-	void run(MaxSat& ms, unsigned int newSize, unsigned int nbIt);
-
 	private:
-	void setParams(const MaxSat& ms);
+
 	void initPop(unsigned int newSize);
 	void newPop();
-	unsigned int evalPop(MaxSat& ms, unsigned int prec);
-	void correlation(MaxSat& ms, std::ostream& data, bool* bestils);
-	void freq(MaxSat& ms, std::ostream& res, bool* bestils);
 	
 	void crossover(unsigned int p1, unsigned int p2, unsigned int next);
 
@@ -77,8 +74,296 @@ class AlgoGen
 	bool *m_Gnot;
 	bool *m_Gin;
 	float *m_Gweights;
-};
 
-unsigned int distance(bool *s1, bool *s2, unsigned int n);
+
+	public:
+
+	template<class PB>
+	void run(PB& pb, unsigned int newSize, unsigned int nbIt)
+	{
+		// PARAM
+		m_n = pb.getN();
+		m_in = new bool[m_popsize*m_maxsize*m_n];
+		m_Gin = new bool[m_popsize*m_maxsize*m_n];
+
+
+		// OUTPUT
+		std::ofstream data("data");
+		std::ofstream res("results.txt");
+		unsigned int nbEval = 0;
+
+
+		// INIT POP
+		initPop(newSize);
+		nbEval = evalPop(pb, 10);
+
+
+		// AlgoGen
+		for(unsigned int it(0); it < nbIt; ++it)
+		{
+			// NEW POP
+			newPop();
+
+
+			// EVAL
+			unsigned int meanNbEval = evalPop(pb, 10);
+			nbEval += meanNbEval;
+			meanNbEval /= (m_popsize*10);
+
+
+			// SAVE
+			data << it << " " << m_fitness[m_sort[m_popsize-1]] << " " << m_size[m_sort[m_popsize-1]] << " " << meanNbEval << "\n";
+		}
+
+		// RES
+		res << "nb eval (solutions) : " << nbEval << "\nnb eval (f obj) : " << pb.getnbeval() << "\n\n#ILS :\n#Fitness max : ";
+
+
+		// ILS
+		unsigned int nbeval = 0;
+		bool *bestils = ils(pb, 5000, &nbeval);
+
+		std::ofstream ilsout("ils", std::ios::app);
+		ilsout << "\n0 " << pb.evaluate(bestils) << "\n" << nbIt << " " << pb.evaluate(bestils) << std::endl;
+
+		res << pb.evaluate(bestils) << "\n#nb eval : " << nbeval;
+
+
+		// CORRELATION
+		correlation(pb, data, bestils);
+
+		// FREQ
+		freq(pb, res, bestils);
+
+		// BEST
+		res << "\n\nFitness max : " << m_fitness[m_sort[m_popsize-1]] << "\n";
+		show(m_sort[m_popsize-1], res);
+
+		delete[] bestils;
+	}
+
+	private:
+
+	template<class PB>
+	unsigned int evalPop(PB& pb, unsigned int prec)
+	{
+		unsigned int nbEval = 0;
+		//#pragma omp parallel for
+		for(unsigned int i = 0; i < m_popsize; ++i)
+		{/*
+			bool **act = new bool*[prec];
+			float *score = new float[prec];
+			float *scoreobj = new float[prec];
+
+			for(unsigned int j(0); j < prec; ++j)
+			{
+				bool *s = localsearchind(i, &nbEval);
+				score[j] = evaluate(i, s);
+				act[j] = getActivation(i);
+				scoreobj[j] = pb.evaluate(s);
+				delete[] s;
+			}
+
+
+			float *adj = new float[m_size[i]];
+			for(unsigned int j(0); j < m_size[i]; ++j) adj[j] = 0.;
+			unsigned int count = 0;
+
+			for(unsigned int j(0); j < prec; ++j)
+			{
+				for(unsigned int k(j+1); k < prec; ++k)
+				{
+					++count;
+					float delta = score[j]/score[k] - scoreobj[j]/scoreobj[k];
+					delta /= 2;
+
+					unsigned int jnk = 0;
+					unsigned int njk = 0;
+					for(unsigned int l(0); l < m_size[i]; ++l)
+					{
+						jnk += (act[j][l] && !act[k][l]);
+						njk += (!act[j][l] && act[k][l]);
+					}
+					if(jnk) for(unsigned int l(0); l < m_size[i]; ++l) adj[l] += delta/jnk * score[j] * (act[j][l] && !act[k][l]);
+					if(njk) for(unsigned int l(0); l < m_size[i]; ++l) adj[l] -= delta/njk * score[j] * (!act[j][l] && act[k][l]);
+				}
+			}
+
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] += adj[j]/count;
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] = (m_weights[i*m_maxsize + j] > 1) ? 1 : m_weights[i*m_maxsize + j];
+			for(unsigned int j(0); j < m_size[i]; ++j) m_weights[i*m_maxsize + j] = (m_weights[i*m_maxsize + j] < -1) ? -1 : m_weights[i*m_maxsize + j];
+
+			delete[] adj;
+
+
+			delete[] scoreobj;
+			delete[] score;
+			delete[] act;*/
+
+			float tmp = 0;
+			for(unsigned int j(0); j < prec; ++j)
+			{
+				bool *s = localsearchind(i, &nbEval);
+				tmp += pb.evaluate(s);
+				delete s;
+			}
+			m_fitness[i] = tmp/prec;
+		}
+
+		// SORT
+		bool tmp = true;
+		while(tmp)
+		{
+			tmp = false;
+			for(unsigned int i(1); i < m_popsize; ++i)
+			{
+				if(m_fitness[m_sort[i-1]] > m_fitness[m_sort[i]])
+				{
+					std::swap(m_sort[i-1], m_sort[i]);
+					tmp = true;
+				}
+			}
+		}
+
+		return nbEval;
+	}
+
+	template<class PB>
+	void correlation(PB& pb, std::ostream& data, bool* bestils)
+	{
+		data << "\n";
+		for(unsigned int i(0); i < 1000; ++i) //rand
+		{
+			bool *s = new bool[m_n];
+			for(unsigned int j(0); j < m_n; ++j) s[j] = rand()%2;
+			data << evaluate(m_sort[m_popsize-1], s) << " " << pb.evaluate(s) << "\n";
+			delete[] s;
+		}
+		data << "\n";
+		for(unsigned int i(0); i < 1000; ++i) //ls f obj
+		{
+			bool *s = localsearch(pb);
+			data << evaluate(m_sort[m_popsize-1], s) << " " << pb.evaluate(s) << "\n";
+		}
+		data << "\n";
+		for(unsigned int i(0); i < 1000; ++i) //ls f ind
+		{
+			bool *s = localsearchind(m_sort[m_popsize-1]);
+			data << evaluate(m_sort[m_popsize-1], s) << " " << pb.evaluate(s) << "\n";
+		}
+		data << "\n";
+
+		data << evaluate(m_sort[m_popsize-1], bestils) << " " << pb.evaluate(bestils) << "\n\n"; //opt glb
+	}
+
+	template<class PB>
+	void freq(PB& pb, std::ostream& res, bool* bestils)
+	{
+		std::vector<bool*> lsobj;
+		std::vector<bool*> lsind;
+		std::vector<unsigned int> fobj;
+		std::vector<unsigned int> find;
+
+		for(unsigned int i(0); i < 100; ++i)
+		{
+			bool *s = localsearch(pb);
+			bool tmp = true;
+			for(unsigned int j(0); j < lsobj.size(); ++j)
+			{
+				if(!distance(s,lsobj[j],m_n))
+				{
+					delete[] s;
+					++fobj[j];
+					tmp = false;
+					break;
+				}
+			}
+			if(tmp)
+			{
+				lsobj.push_back(s);
+				fobj.push_back(1);
+			}
+		}
+		for(unsigned int i(0); i < 100; ++i)
+		{
+			bool *s = localsearchind(m_sort[m_popsize-1]);
+			bool tmp = true;
+			for(unsigned int j(0); j < lsind.size(); ++j)
+			{
+				if(!distance(s,lsind[j],m_n))
+				{
+					delete[] s;
+					++find[j];
+					tmp = false;
+					break;
+				}
+			}
+			if(tmp)
+			{
+				lsind.push_back(s);
+				find.push_back(1);
+			}
+		}
+
+		// SORT
+		unsigned int *sortobj = new unsigned int[lsobj.size()];
+		for(unsigned int i(0); i < lsobj.size(); ++i) sortobj[i] = i;
+		unsigned int *sortind = new unsigned int[lsind.size()];
+		for(unsigned int i(0); i < lsind.size(); ++i) sortind[i] = i;
+
+		bool tmp = true;
+		while(tmp)
+		{
+			tmp = false;
+			for(unsigned int i(1); i < lsobj.size(); ++i)
+			{
+				if(pb.evaluate(lsobj[sortobj[i-1]]) < pb.evaluate(lsobj[sortobj[i]]))
+				{
+					std::swap(sortobj[i-1], sortobj[i]);
+					tmp = true;
+				}
+			}
+		}
+		tmp = true;
+		while(tmp)
+		{
+			tmp = false;
+			for(unsigned int i(1); i < lsind.size(); ++i)
+			{
+				if(pb.evaluate(lsind[sortind[i-1]]) < pb.evaluate(lsind[sortind[i]]) || (pb.evaluate(lsind[sortind[i-1]]) == pb.evaluate(lsind[sortind[i]]) && find[sortind[i-1]] < find[sortind[i]]))
+				{
+					std::swap(sortind[i-1], sortind[i]);
+					tmp = true;
+				}
+			}
+		}
+
+		// FREQ RES
+		res << "\n\nFreq :\n";
+		res << std::setw(21) << "Fonction objectif" << " " << std::setw(55) << "Fonction trouvée" << "\n\n";
+		res << std::setw(21) << "Fitness moyenne :" << " " << std::setw(54) << "Fitness moyenne :" << "\n";
+		float moyennescore = 0;
+		for(unsigned int i(0); i < lsobj.size(); ++i) moyennescore += pb.evaluate(lsobj[i]);
+		res << std::setw(21) << moyennescore/lsobj.size() << " ";
+		moyennescore = 0;
+		for(unsigned int i(0); i < lsind.size(); ++i) moyennescore += pb.evaluate(lsind[i]);
+		res << std::setw(54) << moyennescore/lsind.size() << "\n\n";
+		res << std::setw(10) << "Fitness" << " " << std::setw(10) << "Frequence" << " " << std::setw(10) << "Fitness" << " " << std::setw(10) << "Frequence" << " ";
+		res << std::setw(10) << "opt loc" << " " << std::setw(10) << "Dist ils" << " " << std::setw(10) << "Dist best" << "\n";
+
+
+		for(unsigned int i(0); i < lsobj.size(); ++i)
+		{
+			res << std::setw(10) << pb.evaluate(lsobj[sortobj[i]]) << " " << std::setw(10)  << fobj[sortobj[i]] << " ";
+			if(i < lsind.size())
+			{
+				res << std::setw(10)  << pb.evaluate(lsind[sortind[i]]) << " " << std::setw(10)  << find[sortind[i]] << " " << std::setw(10) << pb.islocopt(lsind[sortind[i]]);
+				res << " " << std::setw(10) << distance(bestils,lsind[sortind[i]],m_n) << " " << std::setw(10) << distance(lsind[sortind[0]],lsind[sortind[i]],m_n);
+			}
+			res << "\n";
+		}
+	}
+
+};
 
 #endif

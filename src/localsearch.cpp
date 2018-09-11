@@ -193,6 +193,37 @@ bool *ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
 	return best;
 }
 
+bool *ils(MSmemory& mm, unsigned int cycles, unsigned int *nbEval)
+{
+	std::ofstream out("ils");
+	bool *best = localsearch(mm, nbEval);
+	float score = mm.evaluate(best);
+	float scoreinit = score;
+	out << "0 " << score << " 0\n";
+
+	for(unsigned int i(0); i < cycles; ++i)
+	{
+		bool *s = localsearch(mm, nbEval);
+		float tmp = mm.evaluate(s);
+
+		if(tmp > score)
+		{
+			delete[] best;
+			best = s;
+			score = tmp;
+			out << i+1 << " " << score << " " << *nbEval << "\n";
+		}
+		else
+		{
+			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+		}
+	}
+
+	out << cycles << " " << score << "\n";
+
+	return best;
+}
+
 
 
 

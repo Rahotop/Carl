@@ -14,5 +14,6 @@ bool* localsearch(const FnArray& fn, unsigned int *nbEval = nullptr);
 bool* localsearch(FnArrayInc& fn, unsigned int *nbEval = nullptr);
 
 bool* ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval = nullptr);
+bool* ils(MSmemory& mm, unsigned int cycles, unsigned int *nbEval = nullptr);
 
 #endif

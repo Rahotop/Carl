@@ -13,6 +13,7 @@ class MSmemory
 	~MSmemory();
 
 	float evaluate(bool *s);
+	bool islocopt(bool *s);
 
 	inline unsigned int getnbeval() const { return m_ms.getnbeval(); }
 	inline unsigned int getN() const { return m_ms.getN(); }

@@ -6,6 +6,7 @@
 #include "localsearch.hpp"
 #include "msalgogen.hpp"
 #include "algogen.hpp"
+#include "msmemory.hpp"
 
 int main(int argc, char **argv)
 {

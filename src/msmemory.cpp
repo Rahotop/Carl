@@ -59,3 +59,19 @@ float MSmemory::evaluate(bool *s)
 	return m_result[replace];
 }
 
+bool MSmemory::islocopt(bool *s)
+{
+	float score = evaluate(s);
+	for(unsigned int i(0); i < m_ms.getN(); ++i)
+	{
+		s[i] = !s[i];
+		bool tmp = false;
+		if(score < evaluate(s))
+			tmp = true;
+		s[i] = !s[i];
+		if(tmp)
+			return false;
+	}
+	return true;
+}
+
