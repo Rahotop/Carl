@@ -28,6 +28,12 @@ class MSalgogenincpar
 	void run(MaxSat& ms, unsigned int newSize, unsigned int nbIt);
 
 	private:
+	void setParams(const MaxSat& ms);
+	void initPop(unsigned int newSize);
+	void newPop();
+	unsigned int evalPop(MaxSat& ms, unsigned int prec);
+	void correlation(MaxSat& ms, std::ostream& data, bool* bestils);
+	void freq(MaxSat& ms, std::ostream& res, bool* bestils);
 	
 	void crossover(unsigned int p1, unsigned int p2, unsigned int next);
 
@@ -60,6 +66,7 @@ class MSalgogenincpar
 	unsigned int m_width; // size of subtrees
 
 	// POPULATION
+	unsigned int *m_sort;
 	unsigned int *m_size; // m_size[i] is the number of subtrees in the i-th ind 
 	unsigned int *m_trees; // m_trees[i*maxsize*width+j*width+k] is the k-th element of the j-th subtree of i-th ind
 	bool *m_not; // m_not[i*maxsize*width+j*width+k] is the sign of the k-th element of the j-th subtree of i-th ind
