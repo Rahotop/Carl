@@ -25,7 +25,7 @@ class AlgoGen
 	private:
 
 	void initPop(unsigned int newSize);
-	void newPop();
+	void newPop(unsigned int pc, unsigned int pm);
 	
 	void crossover(unsigned int p1, unsigned int p2, unsigned int next);
 
@@ -79,7 +79,7 @@ class AlgoGen
 	public:
 
 	template<class PB>
-	void run(PB& pb, unsigned int newSize, unsigned int nbIt, const std::string& file)
+	void run(PB& pb, unsigned int newSize, unsigned int nbIt, const std::string& file, unsigned int pc, unsigned int pm)
 	{
 		// PARAM
 		m_n = pb.getN();
@@ -102,7 +102,7 @@ class AlgoGen
 		for(unsigned int it(0); it < nbIt; ++it)
 		{
 			// NEW POP
-			newPop();
+			newPop(pc,pc+pm);
 
 
 			// EVAL

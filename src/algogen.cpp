@@ -62,17 +62,17 @@ void AlgoGen::initPop(unsigned int newSize)
 	}
 }
 
-void AlgoGen::newPop()
+void AlgoGen::newPop(unsigned int pc, unsigned int pm)
 {
 	unsigned int cp = m_popsize;
 	for(unsigned int i(0); i < m_popsize; ++i)
 	{
-		if(!(rand()%3))
+		if(((unsigned int)rand()%100) < pc)
 		{
 			//crossover
 			crossover(rand()%m_popsize, rand()%m_popsize, i);
 		}
-		else if(rand()%2)
+		else if(((unsigned int)rand()%100) < pm)
 		{
 			//mutation
 			if(!(rand()%3))

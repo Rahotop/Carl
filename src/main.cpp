@@ -13,12 +13,21 @@ int main(int argc, char **argv)
 {
 	srand(time(nullptr));
 
-	MaxSat test("uf50-01.cnf");
-	//NK test("nk_64_6.0");
-
-	AlgoGen algo(100,100,15);
-
-	algo.run(test, 5, 1000,"data");
+	if(argc > 1)
+	{
+		if("-ms" == std::string(argv[1]))
+		{
+			MaxSat inst(argv[2]);
+			AlgoGen algo(100,400,15);
+			algo.run(inst, 5, 10000, argv[3], std::stoi(argv[4]), std::stoi(argv[5]));
+		}
+		else if("-nk" == std::string(argv[1]))
+		{
+			NK inst(argv[2]);
+			AlgoGen algo(100,400,15);
+			algo.run(inst, 5, 10000, argv[3], std::stoi(argv[4]), std::stoi(argv[5]));
+		}
+	}
 
 	return 0;
 }
