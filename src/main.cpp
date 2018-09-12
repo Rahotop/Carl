@@ -1,10 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include "fnarray.hpp"
 #include "maxsat.hpp"
 #include "localsearch.hpp"
-#include "msalgogen.hpp"
 #include "algogen.hpp"
 #include "msmemory.hpp"
 #include "nk.hpp"
