@@ -26,8 +26,10 @@ class FnArray
 	void addRandom();
 	void deleteRandom();
 
-	inline bool operator<(const FnArray& fn) { return m_score < fn.m_score; }
-	inline bool operator>(const FnArray& fn) { return m_score > fn.m_score; }
+	inline bool operator<(const FnArray& fn) const { return m_score < fn.m_score; }
+	inline bool operator>(const FnArray& fn) const { return m_score > fn.m_score; }
+	inline bool operator<(FnArray& fn) { return m_score < fn.m_score; }
+	inline bool operator>(FnArray& fn) { return m_score > fn.m_score; }
 	FnArray& operator=(const FnArray& fn);
 	friend std::ostream& operator<<(std::ostream& o, const FnArray& fn);
 
