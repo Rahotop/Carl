@@ -10,7 +10,6 @@
 #include <fstream>
 #include "localsearch.hpp"
 #include "maxsat.hpp"
-#include "fnarray.hpp"
 #include "msmemory.hpp"
 
 unsigned int distance(bool *s1, bool *s2, unsigned int n);
