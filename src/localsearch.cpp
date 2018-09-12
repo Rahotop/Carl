@@ -203,9 +203,8 @@ bool* localsearch(FnArrayInc& fn, unsigned int *nbEval)
 	return s;
 }
 
-bool *ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
+bool *ils(std::ostream& out, MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
 {
-	std::ofstream out("ils");
 	bool *best = localsearch(ms, nbEval);
 	float score = ms.evaluate(best);
 	float scoreinit = score;
@@ -234,9 +233,8 @@ bool *ils(MaxSat& ms, unsigned int cycles, unsigned int *nbEval)
 	return best;
 }
 
-bool *ils(NK& nk, unsigned int cycles, unsigned int *nbEval)
+bool *ils(std::ostream& out, NK& nk, unsigned int cycles, unsigned int *nbEval)
 {
-	std::ofstream out("ils");
 	bool *best = localsearch(nk, nbEval);
 	float score = nk.evaluate(best);
 	float scoreinit = score;
@@ -265,9 +263,8 @@ bool *ils(NK& nk, unsigned int cycles, unsigned int *nbEval)
 	return best;
 }
 
-bool *ils(MSmemory& mm, unsigned int cycles, unsigned int *nbEval)
+bool *ils(std::ostream& out, MSmemory& mm, unsigned int cycles, unsigned int *nbEval)
 {
-	std::ofstream out("ils");
 	bool *best = localsearch(mm, nbEval);
 	float score = mm.evaluate(best);
 	float scoreinit = score;

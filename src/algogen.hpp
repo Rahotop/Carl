@@ -79,7 +79,7 @@ class AlgoGen
 	public:
 
 	template<class PB>
-	void run(PB& pb, unsigned int newSize, unsigned int nbIt)
+	void run(PB& pb, unsigned int newSize, unsigned int nbIt, const std::string& file)
 	{
 		// PARAM
 		m_n = pb.getN();
@@ -88,8 +88,8 @@ class AlgoGen
 
 
 		// OUTPUT
-		std::ofstream data("data");
-		std::ofstream res("results.txt");
+		std::ofstream data(file);
+		std::ofstream res(file+".txt");
 		unsigned int nbEval = 0;
 
 
@@ -121,10 +121,10 @@ class AlgoGen
 
 		// ILS
 		unsigned int nbeval = 0;
-		bool *bestils = ils(pb, 5000, &nbeval);
+		data << "\n";
+		bool *bestils = ils(data, pb, 5000, &nbeval);
 
-		std::ofstream ilsout("ils", std::ios::app);
-		ilsout << "\n0 " << pb.evaluate(bestils) << "\n" << nbIt << " " << pb.evaluate(bestils) << std::endl;
+		data << "\n0 " << pb.evaluate(bestils) << "\n" << nbIt << " " << pb.evaluate(bestils) << "\n";
 
 		res << pb.evaluate(bestils) << "\n#nb eval : " << nbeval;
 

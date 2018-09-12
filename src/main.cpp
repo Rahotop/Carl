@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
 	AlgoGen algo(100,100,15);
 
-	algo.run(test, 5, 1000);
+	algo.run(test, 5, 1000,"data");
 
 	return 0;
 }
