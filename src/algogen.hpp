@@ -121,7 +121,7 @@ class AlgoGen
 		// ILS
 		unsigned int nbeval = 0;
 		data << "\n";
-		bool *bestils = ils(data, pb, 5000, &nbeval);
+		bool *bestils = ils(data, pb, 10000, &nbeval);
 
 		data << "\n0 " << pb.evaluate(bestils) << "\n" << nbIt << " " << pb.evaluate(bestils) << "\n";
 
@@ -203,10 +203,12 @@ class AlgoGen
 			for(unsigned int j(0); j < prec; ++j)
 			{
 				bool *s = localsearchind(i, &nbEval);
-				tmp += pb.evaluate(s);
+				float tmpscore = pb.evaluate(s);
+				//tmp += pb.evaluate(s);
+				tmp = (tmp < tmpscore) ? tmpscore : tmp;
 				delete s;
 			}
-			m_fitness[i] = tmp/prec;
+			m_fitness[i] = tmp;
 		}
 
 		// SORT
