@@ -110,6 +110,38 @@ void FnArray::deleteTree(unsigned int tree)
 	}
 }
 
+void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
+{
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16; ++width);
+
+	if(!rand()%(width+1))
+	{
+		m_weights[tree] += (float)(rand()%1000)/10000. - 0.05;
+	}
+	else
+	{
+		unsigned int mutate = rand()%width;
+		if(rand()%2)
+		{
+			m_not[tree*m_width + mutate] = !m_not[tree*m_width + mutate];
+		}
+		else
+		{
+			if(m_trees[tree*m_width + mutate] < 16)
+			{
+				m_trees[tree*m_width + mutate] = fnset[rand()%fnset.size()];
+			}
+			else
+			{
+				m_trees[tree*m_width + mutate] = rand()%m_n + 16;
+				for(unsigned int i(0); i < m_n; ++i) m_in[i*m_n + tree] = false;
+				for(unsigned int i(0); i < width; ++i) m_in[m_trees[tree*m_width + i]*m_n + tree] = true;
+			}
+		}
+	}
+}
+
 float FnArray::evaluate(bool *s)
 {
 	float sum = 0;

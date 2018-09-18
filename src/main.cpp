@@ -90,7 +90,30 @@ int main(int argc, char **argv)
 
 
 	if(ms && hh)
-	{
+	{/*
+		std::ofstream data("dataNnew");
+		for(unsigned int it(100); it <= 1000; it+=100)
+		{
+			for(unsigned int ns(5); ns <= 50; ns+=5)
+			{
+				for(unsigned int w(3); w <= 15; w+=2)
+				{
+					float tmp = 0.;
+					for(unsigned int i(0); i < 10; ++i)
+					{
+						MaxSat inst(path);
+						HyperHeuritic hyper(size,w);
+						hyper.run(inst, ns, it, out+"-"+std::to_string(id));
+
+						tmp += hyper.finalScore();
+					}
+					tmp /= 10.;
+					data << it << " " << ns << " " << w << " " << tmp << std::endl;
+				}
+			}
+			data << std::endl;
+		}*/
+
 		MaxSat inst(path);
 		HyperHeuritic hyper(size,width);
 		hyper.run(inst, newsize, iteration, out+"-"+std::to_string(id));

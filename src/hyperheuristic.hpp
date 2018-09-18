@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <algorithm>
+#include "algogen.hpp"
 
 class FnArray
 {
@@ -17,6 +18,7 @@ class FnArray
 	void addRandom(const std::vector<unsigned int>& fnset);
 	void deleteRandom();
 	void deleteTree(unsigned int tree);
+	void mutate(unsigned int tree, const std::vector<unsigned int>& fnset);
 
 	float evaluate(bool *s);
 	float evaluateinc(bool *s, unsigned int changed);
@@ -55,6 +57,8 @@ class HyperHeuritic
 
 	HyperHeuritic(unsigned int maxsize, unsigned int width);
 	~HyperHeuritic();
+
+	inline float finalScore() const { return m_pop.back()->getfitness(); }
 
 	private:
 
@@ -102,6 +106,7 @@ class HyperHeuritic
 			unsigned int tmpnbeval = 0;
 			float score = m_pop.back()->getfitness();
 			bool *s = m_pop.back()->getSol();
+			unsigned int same = 0;
 
 			for(unsigned int i(0); i < visit; ++i)
 			{/*
@@ -109,7 +114,13 @@ class HyperHeuritic
 				for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);*/
 
 				m_pop.push_back(new FnArray(*m_pop.back()));
+				if(m_pop.back()->size())
+					m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+/*
+				m_pop.push_back(new FnArray(*m_pop.back()));
+				m_pop.back()->addRandom(m_fnset);*/
 
+/*
 				if(rand()%3)
 				{
 					m_pop.back()->addRandom(m_fnset);
@@ -117,12 +128,15 @@ class HyperHeuritic
 				else
 				{
 					m_pop.back()->deleteRandom();
-				}/*
+				}*//*
 				unsigned int tmp = rand()%10;
 				for(unsigned int i(0); i < tmp; ++i) m_pop.back()->addRandom(m_fnset);*/
 
 				tmpnbeval = evalPop(pb, s);
 				nbEval += tmpnbeval;
+
+				if(distance(s,m_pop.back()->getSol(),m_n))
+					++same;
 
 				if(m_pop.back()->getfitness() > score)
 				{
@@ -131,13 +145,40 @@ class HyperHeuritic
 				}
 				else
 				{
+					delete m_pop.back();
 					m_pop.pop_back();
+				}
+			}
+
+			if(!improved)
+			{
+				for(unsigned int i(0); i < visit; ++i)
+				{
+					m_pop.push_back(new FnArray(*m_pop.back()));
+					m_pop.back()->addRandom(m_fnset);
+
+					tmpnbeval = evalPop(pb, s);
+					nbEval += tmpnbeval;
+					
+					if(distance(s,m_pop.back()->getSol(),m_n))
+						++same;
+
+					if(m_pop.back()->getfitness() > score)
+					{
+						improved = true;
+						break;
+					}
+					else
+					{
+						delete m_pop.back();
+						m_pop.pop_back();
+					}
 				}
 			}
 
 
 			// SAVE
-			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << std::endl;
+			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
 		}
 	}
 
