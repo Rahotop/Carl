@@ -47,7 +47,7 @@ class AlgoGen
 
 	void show(unsigned int index, std::ostream& out);
 
-	// PARAM
+	// PARAMS
 	std::vector<unsigned int> m_fnset;
 	unsigned int m_n;
 
@@ -154,14 +154,17 @@ class AlgoGen
 			float *score = new float[prec];
 			float *scoreobj = new float[prec];
 
+			m_fitness[i] = 0.;
 			for(unsigned int j(0); j < prec; ++j)
 			{
 				bool *s = localsearchind(i, &nbEval);
 				score[j] = evaluate(i, s);
 				act[j] = getActivation(i);
 				scoreobj[j] = pb.evaluate(s);
+				m_fitness[i] += scoreobj[j];
 				delete[] s;
 			}
+			m_fitness[i] /= prec;
 
 
 			float *adj = new float[m_size[i]];
@@ -200,15 +203,17 @@ class AlgoGen
 			delete[] act;*/
 
 			float tmp = 0;
+			//float tmp2 = 1000000;
 			for(unsigned int j(0); j < prec; ++j)
 			{
 				bool *s = localsearchind(i, &nbEval);
-				float tmpscore = pb.evaluate(s);
-				//tmp += pb.evaluate(s);
-				tmp = (tmp < tmpscore) ? tmpscore : tmp;
+				tmp += pb.evaluate(s);
+				//float tmpscore = pb.evaluate(s);
+				//tmp = (tmp < tmpscore) ? tmpscore : tmp;
+				//tmp2 = (tmp2 > tmpscore) ? tmpscore : tmp2;
 				delete s;
 			}
-			m_fitness[i] = tmp;
+			m_fitness[i] = tmp/prec;
 		}
 
 		// SORT
@@ -233,7 +238,7 @@ class AlgoGen
 	void correlation(PB& pb, std::ostream& data, bool* bestils)
 	{
 		data << "\n";
-		for(unsigned int i(0); i < 1000; ++i) //rand
+		for(unsigned int i(0); i < 10000; ++i) //rand
 		{
 			bool *s = new bool[m_n];
 			for(unsigned int j(0); j < m_n; ++j) s[j] = rand()%2;
@@ -241,13 +246,13 @@ class AlgoGen
 			delete[] s;
 		}
 		data << "\n";
-		for(unsigned int i(0); i < 1000; ++i) //ls f obj
+		for(unsigned int i(0); i < 10000; ++i) //ls f obj
 		{
 			bool *s = localsearch(pb);
 			data << evaluate(m_sort[m_popsize-1], s) << " " << pb.evaluate(s) << "\n";
 		}
 		data << "\n";
-		for(unsigned int i(0); i < 1000; ++i) //ls f ind
+		for(unsigned int i(0); i < 10000; ++i) //ls f ind
 		{
 			bool *s = localsearchind(m_sort[m_popsize-1]);
 			data << evaluate(m_sort[m_popsize-1], s) << " " << pb.evaluate(s) << "\n";

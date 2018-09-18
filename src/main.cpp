@@ -6,13 +6,14 @@
 #include "algogen.hpp"
 #include "msmemory.hpp"
 #include "nk.hpp"
+#include "hyperheuristic.hpp"
 
 void plot(std::string out, unsigned int id);
 
 int main(int argc, char **argv)
 {
-	srand(time(nullptr));
-
+	bool hh = false;
+	bool ag = false;
 	bool ms = false;
 	bool nk = false;
 	std::string path;
@@ -25,6 +26,7 @@ int main(int argc, char **argv)
 	unsigned int pc = 15;
 	unsigned int pm = 15;
 	unsigned int id = 0;
+	unsigned int seed = time(nullptr);
 
 	for(int i(1); i < argc; i+= 2)
 	{
@@ -37,6 +39,16 @@ int main(int argc, char **argv)
 		{
 			nk = true;
 			path = argv[i+1];
+		}
+		else if("-hh" == std::string(argv[i]))
+		{
+			hh = true;
+			--i;
+		}
+		else if("-ag" == std::string(argv[i]))
+		{
+			ag = true;
+			--i;
 		}
 		else if("-nbind" == std::string(argv[i]))
 			nbind = std::stoi(argv[i+1]);
@@ -56,21 +68,41 @@ int main(int argc, char **argv)
 			pm = std::stoi(argv[i+1]);
 		else if("-id" == std::string(argv[i]))
 			id = std::stoi(argv[i+1]);
+		else if("-seed" == std::string(argv[i]))
+			seed = std::stoi(argv[i+1]);
 	}
 
-	if(ms)
+	srand(seed);
+
+	if(ms && ag)
 	{
 		MaxSat inst(path);
 		AlgoGen algo(nbind,size,width);
 		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
 	}
 	
-	if(nk)
+	if(nk && ag)
 	{
 		NK inst(path);
 		AlgoGen algo(nbind,size,width);
 		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
 	}
+
+
+	if(ms && hh)
+	{
+		MaxSat inst(path);
+		HyperHeuritic hyper(size,width);
+		hyper.run(inst, newsize, iteration, out+"-"+std::to_string(id));
+	}
+	
+	if(nk && hh)
+	{
+		NK inst(path);
+		HyperHeuritic hyper(size,width);
+		hyper.run(inst, newsize, iteration, out+"-"+std::to_string(id));
+	}
+
 
 	if(ms||nk)
 		plot(out,id);
