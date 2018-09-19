@@ -100,7 +100,8 @@ class HyperHeuritic
 
 		// LS
 		bool improved = true;
-		for(unsigned int it(1); improved; ++it)
+		unsigned int it(1);
+		for(; improved; ++it)
 		{
 			improved = false;
 			unsigned int tmpnbeval = 0;
@@ -149,7 +150,7 @@ class HyperHeuritic
 					m_pop.pop_back();
 				}
 			}
-
+/*
 			if(!improved)
 			{
 				for(unsigned int i(0); i < visit; ++i)
@@ -175,10 +176,31 @@ class HyperHeuritic
 					}
 				}
 			}
-
+*/
 
 			// SAVE
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
+		}
+		data << std::endl;
+
+		res << "nb eval (solutions) : " << nbEval << std::endl;
+		res << "nb eval (f obj) : " << pb.getnbeval() << std::endl;
+		res << "\n#ILS :\n";
+
+		unsigned int ilsnbeval = 0;
+		bool *bestils = ils(data, pb, 10000, &ilsnbeval);
+		data << "\n0 " << pb.evaluate(bestils) << "\n" << it << " " << pb.evaluate(bestils) << std::endl;
+		res << "#fitness max : " << pb.evaluate(bestils) << std::endl;
+		res << "#nb eval : " << ilsnbeval << std::endl;
+		delete[] bestils;
+
+		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
+		for(unsigned int i(0); i < m_pop.size(); ++i)
+		{
+			res << "x" << i << " : " << pb.evaluate(m_pop[i]->getSol()) << " (" << pb.islocopt(m_pop[i]->getSol()) << ")\n\t" << distance(m_pop[i]->getSol(),m_s,m_n);
+			for(unsigned int j(0); j < i; ++j)
+				res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
+			res << std::endl;
 		}
 	}
 
