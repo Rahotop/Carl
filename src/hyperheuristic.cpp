@@ -13,7 +13,7 @@ FnArray::FnArray(unsigned int maxsize, unsigned int width, unsigned int n) :	m_n
 																				m_weights(new float[maxsize]),
 																				m_fitness(0.)
 {
-	
+	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_trees[i] = 0;
 }
 
 FnArray::FnArray(const FnArray& fn) :	m_n(fn.m_n),
@@ -113,7 +113,7 @@ void FnArray::deleteTree(unsigned int tree)
 void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 {
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16; ++width);
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
 
 	if(!rand()%(width+1))
 	{
@@ -122,12 +122,14 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 	else
 	{
 		unsigned int mutate = rand()%width;
+
 		if(rand()%2)
 		{
 			m_not[tree*m_width + mutate] = !m_not[tree*m_width + mutate];
 		}
 		else
 		{
+			m_not[tree*m_width + mutate] = rand()%2;
 			if(m_trees[tree*m_width + mutate] < 16)
 			{
 				m_trees[tree*m_width + mutate] = fnset[rand()%fnset.size()];
@@ -136,7 +138,7 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 			{
 				m_trees[tree*m_width + mutate] = rand()%m_n + 16;
 				for(unsigned int i(0); i < m_n; ++i) m_in[i*m_n + tree] = false;
-				for(unsigned int i(0); i < width; ++i) m_in[m_trees[tree*m_width + i]*m_n + tree] = true;
+				for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_n + tree] = true;
 			}
 		}
 	}
@@ -277,6 +279,25 @@ bool* FnArray::ls(bool *s, unsigned int *nbEval)
 		*nbEval += tmpEval;
 
 	return m_s;
+}
+
+void FnArray::show(std::ostream& out)
+{
+	out << m_size << " " << m_width << std::endl << std::endl;
+	for(unsigned int i(0); i < m_size; ++i)
+	{
+		out << m_weights[i] << std::endl;
+		for(unsigned int j(0); j < m_width; ++j)
+		{
+			out << m_trees[i*m_width+j] << " ";
+		}
+		out << std::endl;
+		for(unsigned int j(0); j < m_width; ++j)
+		{
+			out << m_not[i*m_width+j] << " ";
+		}
+		out << std::endl << std::endl;
+	}
 }
 
 

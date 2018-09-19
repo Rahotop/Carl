@@ -1,6 +1,7 @@
 #ifndef HYPERHEURISTIC_HPP_INCLUDED
 #define HYPERHEURISTIC_HPP_INCLUDED
 
+#include <iostream>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -29,6 +30,8 @@ class FnArray
 	inline float getfitness() const { return m_fitness; }
 	inline bool* getSol() const { return m_s; }
 	inline unsigned int size() const { return m_size; }
+
+	void show(std::ostream& out);
 
 	private:
 
@@ -109,7 +112,8 @@ class HyperHeuritic
 			bool *s = m_pop.back()->getSol();
 			unsigned int same = 0;
 
-			for(unsigned int i(0); i < visit; ++i)
+			unsigned int i(0);
+			for(; i < visit; ++i)
 			{/*
 				m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
 				for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);*/
@@ -136,7 +140,7 @@ class HyperHeuritic
 				tmpnbeval = evalPop(pb, s);
 				nbEval += tmpnbeval;
 
-				if(distance(s,m_pop.back()->getSol(),m_n))
+				if(!distance(s,m_pop.back()->getSol(),m_n))
 					++same;
 
 				if(m_pop.back()->getfitness() > score)
@@ -175,11 +179,11 @@ class HyperHeuritic
 						m_pop.pop_back();
 					}
 				}
-			}
-*/
+			}*/
+
 
 			// SAVE
-			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
+			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " " << i << std::endl;
 		}
 		data << std::endl;
 
@@ -201,6 +205,13 @@ class HyperHeuritic
 			for(unsigned int j(0); j < i; ++j)
 				res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
 			res << std::endl;
+		}
+		res << std::endl;
+
+		for(unsigned int i(0); i < m_pop.size(); ++i)
+		{
+			res << "========================================" << std::endl;
+			m_pop[i]->show(res);
 		}
 	}
 

@@ -7,6 +7,7 @@
 #include "msmemory.hpp"
 #include "nk.hpp"
 #include "hyperheuristic.hpp"
+#include "onemax.hpp"
 
 void plot(std::string out, unsigned int id);
 
@@ -16,6 +17,8 @@ int main(int argc, char **argv)
 	bool ag = false;
 	bool ms = false;
 	bool nk = false;
+	bool om = false;
+	unsigned int omn = 64;
 	std::string path;
 	unsigned int nbind = 100;
 	unsigned int size = 100;
@@ -39,6 +42,11 @@ int main(int argc, char **argv)
 		{
 			nk = true;
 			path = argv[i+1];
+		}
+		else if("-om" == std::string(argv[i]))
+		{
+			om = true;
+			omn = std::stoi(argv[i+1]);
 		}
 		else if("-hh" == std::string(argv[i]))
 		{
@@ -87,6 +95,13 @@ int main(int argc, char **argv)
 		AlgoGen algo(nbind,size,width);
 		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
 	}
+	
+	if(om && ag)
+	{
+		OneMax inst(omn);
+		AlgoGen algo(nbind,size,width);
+		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
+	}
 
 
 	if(ms && hh)
@@ -125,9 +140,16 @@ int main(int argc, char **argv)
 		HyperHeuritic hyper(size,width);
 		hyper.run(inst, newsize, iteration, out+"-"+std::to_string(id));
 	}
+	
+	if(om && hh)
+	{
+		OneMax inst(omn);
+		HyperHeuritic hyper(size,width);
+		hyper.run(inst, newsize, iteration, out+"-"+std::to_string(id));
+	}
 
 
-	if(ms||nk)
+	if(ms||nk||om)
 		plot(out,id);
 
 	return 0;
