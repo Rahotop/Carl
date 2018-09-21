@@ -16,6 +16,7 @@ class FnArray
 	FnArray(const FnArray& fn);
 	~FnArray();
 
+	void add(unsigned int var, bool n);
 	void addRandom(const std::vector<unsigned int>& fnset);
 	void deleteRandom();
 	void deleteTree(unsigned int tree);
@@ -97,6 +98,7 @@ class HyperHeuritic
 		// INIT POP
 		m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
 		for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
+		//for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);
 		nbEval = evalPop(pb, m_s);
 		data << "0 " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << nbEval << "\n";
 
@@ -119,23 +121,20 @@ class HyperHeuritic
 				for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);*/
 
 				m_pop.push_back(new FnArray(*m_pop.back()));
-				if(m_pop.back()->size())
-					m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
-/*
-				m_pop.push_back(new FnArray(*m_pop.back()));
-				m_pop.back()->addRandom(m_fnset);*/
-
-/*
-				if(rand()%3)
-				{
-					m_pop.back()->addRandom(m_fnset);
-				}
+				//if(rand()%2)
+				m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);/*
 				else
 				{
+					m_pop.back()->addRandom(m_fnset);
+					m_pop.back()->addRandom(m_fnset);
 					m_pop.back()->deleteRandom();
-				}*//*
-				unsigned int tmp = rand()%10;
-				for(unsigned int i(0); i < tmp; ++i) m_pop.back()->addRandom(m_fnset);*/
+				}*/
+/*
+				m_pop.push_back(new FnArray(*m_pop.back()));
+				if(rand()%10 || m_pop.back()->size())
+				m_pop.back()->addRandom(m_fnset);
+				else
+				m_pop.back()->deleteTree(rand()%m_pop.back()->size());*/
 
 				tmpnbeval = evalPop(pb, s);
 				nbEval += tmpnbeval;
@@ -157,10 +156,13 @@ class HyperHeuritic
 /*
 			if(!improved)
 			{
-				for(unsigned int i(0); i < visit; ++i)
+				for(; i < visit*2; ++i)
 				{
-					m_pop.push_back(new FnArray(*m_pop.back()));
-					m_pop.back()->addRandom(m_fnset);
+					//m_pop.push_back(new FnArray(*m_pop.back()));
+					//m_pop.back()->addRandom(m_fnset);
+
+					m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
+					for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
 
 					tmpnbeval = evalPop(pb, s);
 					nbEval += tmpnbeval;
@@ -222,6 +224,22 @@ class HyperHeuritic
 		bool *ns = m_pop.back()->ls(s, &tmp);
 		m_pop.back()->setfitness(pb.evaluate(ns));
 		return tmp;
+/*
+		unsigned int tmp = 0;
+		bool *ns = new bool[m_n];
+
+		float score = 0.;
+		for(unsigned int i(0); i < 10; ++i)
+		{
+			for(unsigned int i(0); i < m_n; ++i) ns[i] = rand()%2;
+			bool *opt = m_pop.back()->ls(ns, &tmp);
+			score += pb.evaluate(opt);
+		}
+		m_pop.back()->setfitness(score/10.);
+
+		delete[] ns;
+
+		return tmp/10;*/
 	}
 };
 

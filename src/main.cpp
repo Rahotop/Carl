@@ -106,12 +106,12 @@ int main(int argc, char **argv)
 
 	if(ms && hh)
 	{/*
-		std::ofstream data("dataNnew");
-		for(unsigned int it(100); it <= 1000; it+=100)
+		std::ofstream data("dataNfin+add");
+		for(unsigned int it(250); it <= 1000; it+=250)
 		{
-			for(unsigned int ns(5); ns <= 50; ns+=5)
+			for(unsigned int ns(10); ns <= 40; ns+=10)
 			{
-				for(unsigned int w(3); w <= 15; w+=2)
+				for(unsigned int w(3); w <= 15; w+=4)
 				{
 					float tmp = 0.;
 					for(unsigned int i(0); i < 10; ++i)
