@@ -4,6 +4,7 @@ FnArray::FnArray(unsigned int maxsize, unsigned int width, unsigned int n) :	m_n
 																				m_maxsize(maxsize),
 																				m_width(width),
 																				m_size(0),
+																				m_steps(0),
 																				m_trees(new unsigned int[maxsize*width]),
 																				m_not(new bool[maxsize*width]),
 																				m_prec(new bool[maxsize]),
@@ -20,6 +21,7 @@ FnArray::FnArray(const FnArray& fn) :	m_n(fn.m_n),
 										m_maxsize(fn.m_maxsize),
 										m_width(fn.m_width),
 										m_size(fn.m_size),
+										m_steps(0),
 										m_trees(new unsigned int[fn.m_maxsize*fn.m_width]),
 										m_not(new bool[fn.m_maxsize*fn.m_width]),
 										m_prec(new bool[fn.m_maxsize]),
@@ -329,6 +331,7 @@ float FnArray::evaluateinc(bool *s, unsigned int changed)
 
 void FnArray::acceptCurr()
 {
+	++m_steps;
 	for(unsigned int i(0); i < m_size; ++i)
 	{
 		m_prec[i] = m_curr[i];
@@ -423,6 +426,75 @@ HyperHeuritic::~HyperHeuritic()
 		delete[] m_s;
 }
 
+void HyperHeuritic::initrand(unsigned int newSize)
+{
+	m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
+	for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
+}
+
+void HyperHeuritic::initall(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
+	for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);
+}
+
+void HyperHeuritic::mut1(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(*m_pop.back()));
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+}
+
+void HyperHeuritic::mut2(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(*m_pop.back()));
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+}
+
+void HyperHeuritic::mut3(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(*m_pop.back()));
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+	m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+}
+
+void HyperHeuritic::mut1add(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(*m_pop.back()));
+	if(rand()%2)
+		m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
+	else
+		m_pop.back()->addRandom(m_fnset);
+}
+
+void HyperHeuritic::mutadd(unsigned int newSize)
+{
+	newSize = newSize;
+	m_pop.push_back(new FnArray(*m_pop.back()));
+	m_pop.back()->addRandom(m_fnset);
+}
+
+void HyperHeuritic::mutnew(unsigned int newSize)
+{
+	m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
+	for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
+}
+
+bool HyperHeuritic::sup()
+{
+	return m_pop.back()->getfitness() > m_pop[m_pop.size()-2]->getfitness();
+}
+
+bool HyperHeuritic::supeq()
+{
+	return m_pop.back()->getfitness() >= m_pop[m_pop.size()-2]->getfitness();
+}
 
 
 

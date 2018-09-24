@@ -31,6 +31,7 @@ class FnArray
 	inline float getfitness() const { return m_fitness; }
 	inline bool* getSol() const { return m_s; }
 	inline unsigned int size() const { return m_size; }
+	inline unsigned int getsteps() const { return m_steps; }
 
 	void show(std::ostream& out);
 
@@ -44,6 +45,8 @@ class FnArray
 	unsigned int m_width; // size of subtrees
 	unsigned int m_size; // m_size is the number of subtrees
 
+	unsigned int m_steps;
+
 	// SUBTREES
 	unsigned int *m_trees; // m_trees[i*width+j] is the j-th element of the i-th subtree
 	bool *m_not; // m_not[i*width+j] is the sign of the j-th element of the i-th subtree
@@ -55,6 +58,12 @@ class FnArray
 	float m_fitness; // m_fitness is the fitness
 };
 
+class HyperHeuritic;
+
+typedef void (HyperHeuritic::*INIT)(unsigned int);
+typedef bool (HyperHeuritic::*COND)();
+typedef void (HyperHeuritic::*NEXT)(unsigned int);
+
 class HyperHeuritic
 {
 	public:
@@ -63,6 +72,16 @@ class HyperHeuritic
 	~HyperHeuritic();
 
 	inline float finalScore() const { return m_pop.back()->getfitness(); }
+	void initrand(unsigned int newSize);
+	void initall(unsigned int newSize);
+	void mut1(unsigned int newSize);
+	void mut2(unsigned int newSize);
+	void mut3(unsigned int newSize);
+	void mut1add(unsigned int newSize);
+	void mutadd(unsigned int newSize);
+	void mutnew(unsigned int newSize);
+	bool sup();
+	bool supeq();
 
 	private:
 
@@ -81,7 +100,7 @@ class HyperHeuritic
 	public:
 
 	template<class PB>
-	void run(PB& pb, unsigned int newSize, unsigned int visit, const std::string& file)
+	void run(PB& pb, INIT in, COND co, NEXT ne, unsigned int newSize, unsigned int visit, unsigned int nbit, const std::string& file, bool everyoutputs)
 	{
 		// PARAM
 		m_n = pb.getN();
@@ -96,9 +115,7 @@ class HyperHeuritic
 
 
 		// INIT POP
-		m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
-		for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
-		//for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);
+		((*this).*in)(newSize);
 		nbEval = evalPop(pb, m_s);
 		data << "0 " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << nbEval << "\n";
 
@@ -106,86 +123,15 @@ class HyperHeuritic
 		// LS
 		bool improved = true;
 		unsigned int it(1);
-		for(; improved; ++it)
+		for(; improved && it <= nbit; ++it)
 		{
-			improved = false;
 			unsigned int tmpnbeval = 0;
-			float score = m_pop.back()->getfitness();
-			bool *s = m_pop.back()->getSol();
-			unsigned int same = 0;
+			float same = 0.;
 
-			unsigned int i(0);
-			for(; i < visit; ++i)
-			{/*
-				m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
-				for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);*/
-
-				m_pop.push_back(new FnArray(*m_pop.back()));
-				//if(rand()%2)
-				m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);/*
-				else
-				{
-					m_pop.back()->addRandom(m_fnset);
-					m_pop.back()->addRandom(m_fnset);
-					m_pop.back()->deleteRandom();
-				}*/
-/*
-				m_pop.push_back(new FnArray(*m_pop.back()));
-				if(rand()%10 || m_pop.back()->size())
-				m_pop.back()->addRandom(m_fnset);
-				else
-				m_pop.back()->deleteTree(rand()%m_pop.back()->size());*/
-
-				tmpnbeval = evalPop(pb, s);
-				nbEval += tmpnbeval;
-
-				if(!distance(s,m_pop.back()->getSol(),m_n))
-					++same;
-
-				if(m_pop.back()->getfitness() > score)
-				{
-					improved = true;
-					break;
-				}
-				else
-				{
-					delete m_pop.back();
-					m_pop.pop_back();
-				}
-			}
-/*
-			if(!improved)
-			{
-				for(; i < visit*2; ++i)
-				{
-					//m_pop.push_back(new FnArray(*m_pop.back()));
-					//m_pop.back()->addRandom(m_fnset);
-
-					m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
-					for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
-
-					tmpnbeval = evalPop(pb, s);
-					nbEval += tmpnbeval;
-					
-					if(distance(s,m_pop.back()->getSol(),m_n))
-						++same;
-
-					if(m_pop.back()->getfitness() > score)
-					{
-						improved = true;
-						break;
-					}
-					else
-					{
-						delete m_pop.back();
-						m_pop.pop_back();
-					}
-				}
-			}*/
-
-
+			improved = next(pb, visit, newSize, tmpnbeval, nbEval, same, co, ne);
+			
 			// SAVE
-			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " " << i << std::endl;
+			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
 		}
 		data << std::endl;
 
@@ -200,20 +146,27 @@ class HyperHeuritic
 		res << "#nb eval : " << ilsnbeval << std::endl;
 		delete[] bestils;
 
-		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
-		for(unsigned int i(0); i < m_pop.size(); ++i)
+		if(everyoutputs)
 		{
-			res << "x" << i << " : " << pb.evaluate(m_pop[i]->getSol()) << " (" << pb.islocopt(m_pop[i]->getSol()) << ")\n\t" << distance(m_pop[i]->getSol(),m_s,m_n);
-			for(unsigned int j(0); j < i; ++j)
-				res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
+			res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
+			for(unsigned int i(0); i < m_pop.size(); ++i)
+			{
+				res << "x" << i << " : " << pb.evaluate(m_pop[i]->getSol()) << " (" << pb.islocopt(m_pop[i]->getSol()) << ")\n\t" << distance(m_pop[i]->getSol(),m_s,m_n);
+				for(unsigned int j(0); j < i; ++j)
+					res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
+				res << std::endl;
+			}
 			res << std::endl;
-		}
-		res << std::endl;
 
-		for(unsigned int i(0); i < m_pop.size(); ++i)
+			for(unsigned int i(0); i < m_pop.size(); ++i)
+			{
+				res << "========================================" << std::endl;
+				m_pop[i]->show(res);
+			}
+		}
+		else
 		{
-			res << "========================================" << std::endl;
-			m_pop[i]->show(res);
+			res << std::endl << std::endl << "fitness max : " << m_pop.back()->getfitness();
 		}
 	}
 
@@ -240,6 +193,37 @@ class HyperHeuritic
 		delete[] ns;
 
 		return tmp/10;*/
+	}
+
+	template<class PB>
+	bool next(PB& pb, unsigned int visit, unsigned int newSize, unsigned int& tmpnbeval, unsigned int& nbEval, float& propsame, COND c, NEXT n)
+	{
+		unsigned int same = 0;
+		bool *s = m_pop.back()->getSol();
+		unsigned int i = 0;
+		for(; i < visit; ++i)
+		{
+			((*this).*n)(newSize);
+
+			tmpnbeval = evalPop(pb, s);
+			nbEval += tmpnbeval;
+
+			if(!distance(s,m_pop.back()->getSol(),m_n))
+				++same;
+
+			if(((*this).*c)())
+			{
+				propsame = same / (i+1);
+				return true;
+			}
+			else
+			{
+				delete m_pop.back();
+				m_pop.pop_back();
+			}
+		}
+		propsame = same / (i+1);
+		return false;
 	}
 };
 
