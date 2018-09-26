@@ -52,8 +52,8 @@ void FnArray::add(unsigned int var, bool n)
 {
 	if(m_size < m_maxsize)
 	{
-		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_n + m_size] = false;
-		m_in[(var-16)*m_n + m_size] = true;
+		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + m_size] = false;
+		m_in[(var-16)*m_maxsize + m_size] = true;
 
 		m_trees[m_size*m_width] = var;
 		m_trees[m_size*m_width + 1] = m_n+16;
@@ -69,7 +69,7 @@ void FnArray::addRandom(const std::vector<unsigned int>& fnset)
 {
 	if(m_size < m_maxsize)
 	{
-		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_n + m_size] = false;
+		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + m_size] = false;
 
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
 		unsigned int stack = 0;
@@ -86,7 +86,7 @@ void FnArray::addRandom(const std::vector<unsigned int>& fnset)
 			{
 				unsigned int tmp = (rand()%m_n);
 				m_trees[subtree + i] = tmp + 16;
-				m_in[tmp*m_n + m_size] = true;
+				m_in[tmp*m_maxsize + m_size] = true;
 				++stack;
 			}
 			else
@@ -235,8 +235,8 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 					for(unsigned int i(0); i < m_width; ++i) m_not[tree*m_width + i] = tmpn[i];
 				}
 
-				for(unsigned int i(0); i < m_n; ++i) m_in[i*m_n + tree] = false;
-				for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_n + tree] = true;
+				for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + tree] = false;
+				for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_maxsize + tree] = true;
 			}
 		}
 	}
@@ -290,7 +290,7 @@ float FnArray::evaluateinc(bool *s, unsigned int changed)
 
 	bool *tmp = new bool[m_width];
 
-	unsigned int in = changed*m_n;
+	unsigned int in = changed*m_maxsize;
 	for(unsigned int i(0); i < m_size; ++i)
 	{
 		unsigned int index = i*m_width;
@@ -467,10 +467,12 @@ void HyperHeuritic::mut1add(unsigned int newSize)
 {
 	newSize = newSize;
 	m_pop.push_back(new FnArray(*m_pop.back()));
-	if(rand()%2)
+	if(!(rand()%3))
 		m_pop.back()->mutate(rand()%m_pop.back()->size(), m_fnset);
-	else
+	else if(rand()%2 || m_pop.back()->size())
 		m_pop.back()->addRandom(m_fnset);
+	else
+		m_pop.back()->deleteRandom();
 }
 
 void HyperHeuritic::mutadd(unsigned int newSize)

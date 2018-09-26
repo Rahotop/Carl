@@ -129,6 +129,13 @@ class HyperHeuritic
 			float same = 0.;
 
 			improved = next(pb, visit, newSize, tmpnbeval, nbEval, same, co, ne);
+
+			if(improved && !everyoutputs)
+			{
+				delete m_pop[0];
+				m_pop[0] = m_pop[1];
+				m_pop.pop_back();
+			}
 			
 			// SAVE
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
@@ -146,27 +153,21 @@ class HyperHeuritic
 		res << "#nb eval : " << ilsnbeval << std::endl;
 		delete[] bestils;
 
-		if(everyoutputs)
-		{
-			res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
-			for(unsigned int i(0); i < m_pop.size(); ++i)
-			{
-				res << "x" << i << " : " << pb.evaluate(m_pop[i]->getSol()) << " (" << pb.islocopt(m_pop[i]->getSol()) << ")\n\t" << distance(m_pop[i]->getSol(),m_s,m_n);
-				for(unsigned int j(0); j < i; ++j)
-					res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
-				res << std::endl;
-			}
-			res << std::endl;
 
-			for(unsigned int i(0); i < m_pop.size(); ++i)
-			{
-				res << "========================================" << std::endl;
-				m_pop[i]->show(res);
-			}
-		}
-		else
+		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
+		for(unsigned int i(0); i < m_pop.size(); ++i)
 		{
-			res << std::endl << std::endl << "fitness max : " << m_pop.back()->getfitness();
+			res << "x" << i << " : " << pb.evaluate(m_pop[i]->getSol()) << " (" << pb.islocopt(m_pop[i]->getSol()) << ")\n\t" << distance(m_pop[i]->getSol(),m_s,m_n);
+			for(unsigned int j(0); j < i; ++j)
+				res << ", " << distance(m_pop[i]->getSol(),m_pop[j]->getSol(),m_n);
+			res << std::endl;
+		}
+		res << std::endl;
+
+		for(unsigned int i(0); i < m_pop.size(); ++i)
+		{
+			res << "========================================" << std::endl;
+			m_pop[i]->show(res);
 		}
 	}
 
@@ -222,7 +223,7 @@ class HyperHeuritic
 				m_pop.pop_back();
 			}
 		}
-		propsame = same / (i+1);
+		propsame = (float)same / (float)(i+1.);
 		return false;
 	}
 };

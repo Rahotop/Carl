@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 	unsigned int pc = 15;
 	unsigned int pm = 15;
 	unsigned int id = 0;
+	unsigned int repeat = 1;
 	unsigned int seed = time(nullptr);
 
 	for(int i(1); i < argc; i+= 2)
@@ -84,6 +85,8 @@ int main(int argc, char **argv)
 			pm = std::stoi(argv[i+1]);
 		else if("-id" == std::string(argv[i]))
 			id = std::stoi(argv[i+1]);
+		else if("-repeat" == std::string(argv[i]))
+			repeat = std::stoi(argv[i+1]);
 		else if("-seed" == std::string(argv[i]))
 			seed = std::stoi(argv[i+1]);
 		else if("-initrand" == std::string(argv[i]))
@@ -140,75 +143,78 @@ int main(int argc, char **argv)
 
 	srand(seed);
 
-	if(ms && ag)
+	for(unsigned int rp(0); rp < repeat; ++rp)
 	{
-		MaxSat inst(path);
-		AlgoGen algo(nbind,size,width);
-		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
-	}
-	
-	if(nk && ag)
-	{
-		NK inst(path);
-		AlgoGen algo(nbind,size,width);
-		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
-	}
-	
-	if(om && ag)
-	{
-		OneMax inst(omn);
-		AlgoGen algo(nbind,size,width);
-		algo.run(inst, newsize, iteration, out+"-"+std::to_string(id), pc, pm);
-	}
-
-
-	if(ms && hh)
-	{/*
-		std::ofstream data("dataNfin+add");
-		for(unsigned int it(250); it <= 1000; it+=250)
+		if(ms && ag)
 		{
-			for(unsigned int ns(10); ns <= 40; ns+=10)
+			MaxSat inst(path);
+			AlgoGen algo(nbind,size,width);
+			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
+		}
+		
+		if(nk && ag)
+		{
+			NK inst(path);
+			AlgoGen algo(nbind,size,width);
+			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
+		}
+		
+		if(om && ag)
+		{
+			OneMax inst(omn);
+			AlgoGen algo(nbind,size,width);
+			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
+		}
+
+
+		if(ms && hh)
+		{/*
+			std::ofstream data("dataNfin+add");
+			for(unsigned int it(250); it <= 1000; it+=250)
 			{
-				for(unsigned int w(3); w <= 15; w+=4)
+				for(unsigned int ns(10); ns <= 40; ns+=10)
 				{
-					float tmp = 0.;
-					for(unsigned int i(0); i < 10; ++i)
+					for(unsigned int w(3); w <= 15; w+=4)
 					{
-						MaxSat inst(path);
-						HyperHeuritic hyper(size,w);
-						hyper.run(inst, ns, it, out+"-"+std::to_string(id));
+						float tmp = 0.;
+						for(unsigned int i(0); i < 10; ++i)
+						{
+							MaxSat inst(path);
+							HyperHeuritic hyper(size,w);
+							hyper.run(inst, ns, it, out+"-"+std::to_string(id+rp));
 
-						tmp += hyper.finalScore();
+							tmp += hyper.finalScore();
+						}
+						tmp /= 10.;
+						data << it << " " << ns << " " << w << " " << tmp << std::endl;
 					}
-					tmp /= 10.;
-					data << it << " " << ns << " " << w << " " << tmp << std::endl;
 				}
-			}
-			data << std::endl;
-		}*/
+				data << std::endl;
+			}*/
 
-		MaxSat inst(path);
-		HyperHeuritic hyper(size,width);
-		hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id), !cond);
-	}
-	
-	if(nk && hh)
-	{
-		NK inst(path);
-		HyperHeuritic hyper(size,width);
-		hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id), !cond);
-	}
-	
-	if(om && hh)
-	{
-		OneMax inst(omn);
-		HyperHeuritic hyper(size,width);
-		hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id), !cond);
-	}
+			MaxSat inst(path);
+			HyperHeuritic hyper(size,width);
+			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+		}
+		
+		if(nk && hh)
+		{
+			NK inst(path);
+			HyperHeuritic hyper(size,width);
+			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+		}
+		
+		if(om && hh)
+		{
+			OneMax inst(omn);
+			HyperHeuritic hyper(size,width);
+			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+		}
 
 
-	if(ms||nk||om)
-		plot(out,id);
+		if(ms||nk||om)
+			plot(out,id+rp);
+	}
 
 	return 0;
 }
