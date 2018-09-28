@@ -60,7 +60,8 @@ void FnArray::add(unsigned int var, bool n)
 
 		m_not[m_size*m_width] = n;
 		
-		m_weights[m_size] = 1;
+		m_weights[m_size] = ((float)(rand()%10000))/10000.;
+		//m_weights[m_size] = 1;
 		++m_size;
 	}
 }
@@ -102,8 +103,8 @@ void FnArray::addRandom(const std::vector<unsigned int>& fnset)
 
 		for(unsigned int i(0); i < width; ++i) m_not[subtree + i] = rand()%2;
 
-		//m_weights[m_size] = ((float)(rand()%10000))/10000.;
-		m_weights[m_size] = 1.;
+		m_weights[m_size] = ((float)(rand()%10000))/10000.;
+		//m_weights[m_size] = 1.;
 		++m_size;
 	}
 }
@@ -134,12 +135,22 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 {
 	unsigned int width = 0;
 	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
-/*
-	if(!rand()%(width+1))
+
+	if(!rand()%20)
 	{
-		m_weights[tree] += (float)(rand()%1000)/10000. - 0.05;
+		if(rand()%2)
+		{
+			m_weights[tree] = (float)(rand()%10000)/10000.;
+		}
+		else
+		{
+			float tmp = m_weights[tree];
+			unsigned int change = rand()%m_size;
+			m_weights[tree] = m_weights[change];
+			m_weights[change] = tmp;
+		}
 	}
-	else*/
+	else
 	{
 		unsigned int mutate = rand()%width;
 
@@ -200,7 +211,7 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 			}
 			else
 			{
-				if(rand()%2 || m_size == m_maxsize)
+				if(rand()%2 || width == m_width)
 				{
 					m_trees[tree*m_width + mutate] = rand()%m_n + 16;
 				}
@@ -240,6 +251,47 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 			}
 		}
 	}
+}
+
+float FnArray::propSat(bool *s) const
+{
+	float sum = 0;
+	unsigned int end = m_n+16;
+
+	bool *tmp = new bool[m_width];
+
+	for(unsigned int i(0); i < m_size; ++i)
+	{
+		unsigned int stack = 0;
+		unsigned int index = i*m_width;
+
+		for(unsigned int j(0); j < m_width && m_trees[index+j] < end; ++j)
+		{
+			unsigned int op = m_trees[index+j];
+			bool notop = m_not[index+j];
+			if(op >= 16)
+			{
+				tmp[stack++] = (s[op-16] == notop);
+			}
+			else
+			{
+				--stack;
+				unsigned int offset = tmp[stack];
+				--stack;
+				offset += 2*tmp[stack];
+
+				op <<= offset;
+				op >>= 3;
+
+				tmp[stack++] = (op%2 == notop);
+			}
+		}
+		sum += tmp[0];
+	}
+	sum /= (float)m_size;
+
+	delete[] tmp;
+	return sum;
 }
 
 float FnArray::evaluate(bool *s)

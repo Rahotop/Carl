@@ -237,6 +237,8 @@ void plot(std::string path, unsigned int id)
 			out << "'" << path << "-" << id << "-ils.jpg'\n";
 		else if(tmp == "'correlation.jpg'")
 			out << "'" << path << "-" << id << "-correlation.jpg'\n";
+		else if(tmp == "'propsat.jpg'")
+			out << "'" << path << "-" << id << "-propsat.jpg'\n";
 		else if(tmp == "'data'")
 			out << "'" << path << "-" << id << "' ";
 		else if(tmp == ",\\" || tmp == "x1y2" || tmp == "y2tics" || tmp == "1000")

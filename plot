@@ -14,6 +14,11 @@ set output 'ils.jpg'
 plot 'data' every :::1::1 using 1:2 with lines title 'best' ,\
 	'data' every :::1::1 using 1:3 with lines title 'nbeval' axes x1y2
 
+set output 'propsat.jpg'
+plot 'data' every :::::0 using 1:2 with lines title 'fitness' ,\
+	'data' every :::2::2 using 1:2 with lines title 'ILS' ,\
+	'data' every :::::0 using 1:6 with lines title 'propsat' axes x1y2
+
 set output 'correlation.jpg'
 plot 'data' every :::3::3 using 1:2 with points title 'rand' ,\
 	'data' every :::4::4 using 1:2 with points title 'f obj' ,\

@@ -22,6 +22,7 @@ class FnArray
 	void deleteTree(unsigned int tree);
 	void mutate(unsigned int tree, const std::vector<unsigned int>& fnset);
 
+	float propSat(bool *s) const;
 	float evaluate(bool *s);
 	float evaluateinc(bool *s, unsigned int changed);
 	void acceptCurr();
@@ -112,6 +113,7 @@ class HyperHeuritic
 		std::ofstream data(file);
 		std::ofstream res(file+".txt");
 		unsigned int nbEval = 0;
+		float best = 0.;
 
 
 		// INIT POP
@@ -135,19 +137,23 @@ class HyperHeuritic
 				delete m_pop[0];
 				m_pop[0] = m_pop[1];
 				m_pop.pop_back();
+				if(best < m_pop.back()->getfitness())
+					best = m_pop.back()->getfitness();
 			}
 			
 			// SAVE
-			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << std::endl;
+			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " ";
+			data << m_pop.back()->propSat(m_pop.back()->getSol()) << " " << best << std::endl;
 		}
 		data << std::endl;
 
 		res << "nb eval (solutions) : " << nbEval << std::endl;
 		res << "nb eval (f obj) : " << pb.getnbeval() << std::endl;
+		res << "fitness max : " << best << std::endl;
 		res << "\n#ILS :\n";
 
 		unsigned int ilsnbeval = 0;
-		bool *bestils = ils(data, pb, 10000, &ilsnbeval);
+		bool *bestils = ils(data, pb, 100000, &ilsnbeval);
 		data << "\n0 " << pb.evaluate(bestils) << "\n" << it << " " << pb.evaluate(bestils) << std::endl;
 		res << "#fitness max : " << pb.evaluate(bestils) << std::endl;
 		res << "#nb eval : " << ilsnbeval << std::endl;
@@ -198,7 +204,7 @@ class HyperHeuritic
 
 	template<class PB>
 	bool next(PB& pb, unsigned int visit, unsigned int newSize, unsigned int& tmpnbeval, unsigned int& nbEval, float& propsame, COND c, NEXT n)
-	{
+	{/*
 		unsigned int same = 0;
 		bool *s = m_pop.back()->getSol();
 		unsigned int i = 0;
@@ -224,7 +230,52 @@ class HyperHeuritic
 			}
 		}
 		propsame = (float)same / (float)(i+1.);
-		return false;
+		return false;*/
+
+		bool *s = m_pop.back()->getSol();
+
+		((*this).*n)(newSize);
+		tmpnbeval = evalPop(pb, s);
+		nbEval += tmpnbeval;
+
+		float score = m_pop.back()->getfitness();
+		FnArray *ind = m_pop.back();
+		m_pop.pop_back();
+		while(!distance(ind->getSol(),s,m_n))
+		{
+			delete ind;
+
+			((*this).*n)(newSize);
+			tmpnbeval = evalPop(pb, s);
+			nbEval += tmpnbeval;
+
+			score = m_pop.back()->getfitness();
+			ind = m_pop.back();
+			m_pop.pop_back();
+		}
+
+		for(unsigned int i(0); i < visit; ++i)
+		{
+			((*this).*n)(newSize);
+
+			tmpnbeval = evalPop(pb, s);
+			nbEval += tmpnbeval;
+
+			if(m_pop.back()->getfitness() > score && distance(m_pop.back()->getSol(),s,m_n))
+			{
+				delete ind;
+				ind = m_pop.back();
+				score = ind->getfitness();
+				m_pop.pop_back();
+			}
+			else
+			{
+				delete m_pop.back();
+				m_pop.pop_back();
+			}
+		}
+		m_pop.push_back(ind);
+		return true;
 	}
 };
 
