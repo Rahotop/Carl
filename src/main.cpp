@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	unsigned int id = 0;
 	unsigned int repeat = 1;
 	unsigned int seed = time(nullptr);
-	std::vector<unsigned int> fnset = {1,3,9,11,13};
+	std::vector<unsigned int> fnset = {1,7,9,11,13};
 
 	for(int i(1); i < argc; i+= 2)
 	{
