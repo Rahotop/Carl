@@ -69,7 +69,7 @@ class HyperHeuritic
 {
 	public:
 
-	HyperHeuritic(unsigned int maxsize, unsigned int width);
+	HyperHeuritic(unsigned int maxsize, unsigned int width, const std::vector<unsigned int>& fnset);
 	~HyperHeuritic();
 
 	inline float finalScore() const { return m_pop.back()->getfitness(); }
@@ -232,6 +232,9 @@ class HyperHeuritic
 		propsame = (float)same / (float)(i+1.);
 		return false;*/
 
+		c = c;
+		float all = 1.;
+		propsame = 0.;
 		bool *s = m_pop.back()->getSol();
 
 		((*this).*n)(newSize);
@@ -252,6 +255,9 @@ class HyperHeuritic
 			score = m_pop.back()->getfitness();
 			ind = m_pop.back();
 			m_pop.pop_back();
+
+			++all;
+			++propsame;
 		}
 
 		for(unsigned int i(0); i < visit; ++i)
@@ -260,6 +266,10 @@ class HyperHeuritic
 
 			tmpnbeval = evalPop(pb, s);
 			nbEval += tmpnbeval;
+
+			++all;
+			if(!distance(m_pop.back()->getSol(),s,m_n))
+				++propsame;
 
 			if(m_pop.back()->getfitness() > score && distance(m_pop.back()->getSol(),s,m_n))
 			{
@@ -275,6 +285,8 @@ class HyperHeuritic
 			}
 		}
 		m_pop.push_back(ind);
+
+		propsame /= all;
 		return true;
 	}
 };

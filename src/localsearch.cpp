@@ -185,6 +185,7 @@ bool *ils(std::ostream& out, MaxSat& ms, unsigned int cycles, unsigned int *nbEv
 		}
 		else
 		{
+			delete[] s;
 			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
 		}
 	}
@@ -215,6 +216,7 @@ bool *ils(std::ostream& out, NK& nk, unsigned int cycles, unsigned int *nbEval)
 		}
 		else
 		{
+			delete[] s;
 			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
 		}
 	}
@@ -245,6 +247,7 @@ bool *ils(std::ostream& out, MSmemory& mm, unsigned int cycles, unsigned int *nb
 		}
 		else
 		{
+			delete[] s;
 			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
 		}
 	}
@@ -275,6 +278,7 @@ bool *ils(std::ostream& out, OneMax& om, unsigned int cycles, unsigned int *nbEv
 		}
 		else
 		{
+			delete[] s;
 			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
 		}
 	}

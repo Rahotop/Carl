@@ -15,6 +15,7 @@ FnArray::FnArray(unsigned int maxsize, unsigned int width, unsigned int n) :	m_n
 																				m_fitness(0.)
 {
 	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_trees[i] = 0;
+	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_not[i] = 0;
 }
 
 FnArray::FnArray(const FnArray& fn) :	m_n(fn.m_n),
@@ -192,6 +193,7 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 						tmp2 -= m_trees[tree*m_width + start2] >= 16;
 					}
 
+
 					unsigned int i(0);
 					for(; i < start; ++i) tmp[i] = m_trees[tree*m_width + i];
 					for(unsigned int j(start2); j <= save; ++i,++j) tmp[i] = m_trees[tree*m_width + j];
@@ -199,14 +201,27 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 					if(i < m_width)
 						tmp[i] = m_n+16;
 
+
 					i = 0;
 					for(; i < start; ++i) tmpn[i] = m_not[tree*m_width + i];
 					for(unsigned int j(start2); j <= save; ++i,++j) tmpn[i] = m_not[tree*m_width + j];
 					for(unsigned int j(1); j+mutate < m_width; ++i,++j) tmpn[i] = m_not[tree*m_width + mutate+j];
 
 
+					bool clean = false;
+					for(unsigned int j(0); j < m_width; ++j)
+					{
+						tmp[j] = (clean) ? 0 : tmp[j];
+						clean = (tmp[j] == m_n+16) || clean;
+						tmpn[j] = (clean) ? 0 : tmpn[j];
+					}
+
+
 					for(unsigned int j(0); j < m_width; ++j) m_trees[tree*m_width + j] = tmp[j];
 					for(unsigned int i(0); i < m_width; ++i) m_not[tree*m_width + i] = tmpn[i];
+
+					delete[] tmp;
+					delete[] tmpn;
 				}
 			}
 			else
@@ -244,6 +259,9 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 
 					for(unsigned int i(0); i < m_width; ++i) m_trees[tree*m_width + i] = tmp[i];
 					for(unsigned int i(0); i < m_width; ++i) m_not[tree*m_width + i] = tmpn[i];
+
+					delete[] tmp;
+					delete[] tmpn;
 				}
 
 				for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + tree] = false;
@@ -458,12 +476,12 @@ void FnArray::show(std::ostream& out)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-HyperHeuritic::HyperHeuritic(unsigned int maxsize, unsigned int width) : 	m_fnset({1,7,9,11,13}),
-																			m_n(0),
-																			m_s(nullptr),
-																			m_maxsize(maxsize),
-																			m_width(width),
-																			m_pop()
+HyperHeuritic::HyperHeuritic(unsigned int maxsize, unsigned int width, const std::vector<unsigned int>& fnset) : 	m_fnset(fnset),
+																													m_n(0),
+																													m_s(nullptr),
+																													m_maxsize(maxsize),
+																													m_width(width),
+																													m_pop()
 {
 
 }

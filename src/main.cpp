@@ -39,6 +39,7 @@ int main(int argc, char **argv)
 	unsigned int id = 0;
 	unsigned int repeat = 1;
 	unsigned int seed = time(nullptr);
+	std::vector<unsigned int> fnset = {1,3,9,11,13};
 
 	for(int i(1); i < argc; i+= 2)
 	{
@@ -139,6 +140,13 @@ int main(int argc, char **argv)
 			cond = 1;
 			--i;
 		}
+		else if("-fnset" == std::string(argv[i]))
+		{
+			fnset.clear();
+			unsigned int setsize = std::stoi(argv[i+1]);
+			for(unsigned int j(0); j < setsize; ++j)
+				fnset.push_back(std::stoi(argv[i+2+j]));
+		}
 	}
 
 	srand(seed);
@@ -193,21 +201,21 @@ int main(int argc, char **argv)
 			}*/
 
 			MaxSat inst(path);
-			HyperHeuritic hyper(size,width);
+			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 		
 		if(nk && hh)
 		{
 			NK inst(path);
-			HyperHeuritic hyper(size,width);
+			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 		
 		if(om && hh)
 		{
 			OneMax inst(omn);
-			HyperHeuritic hyper(size,width);
+			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 
