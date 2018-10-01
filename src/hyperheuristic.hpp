@@ -137,9 +137,9 @@ class HyperHeuritic
 				delete m_pop[0];
 				m_pop[0] = m_pop[1];
 				m_pop.pop_back();
-				if(best < m_pop.back()->getfitness())
-					best = m_pop.back()->getfitness();
 			}
+			if(best < m_pop.back()->getfitness())
+				best = m_pop.back()->getfitness();
 			
 			// SAVE
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " ";
@@ -153,7 +153,7 @@ class HyperHeuritic
 		res << "\n#ILS :\n";
 
 		unsigned int ilsnbeval = 0;
-		bool *bestils = ils(data, pb, 100000, &ilsnbeval);
+		bool *bestils = ils(data, pb, 20000, &ilsnbeval);
 		data << "\n0 " << pb.evaluate(bestils) << "\n" << it << " " << pb.evaluate(bestils) << std::endl;
 		res << "#fitness max : " << pb.evaluate(bestils) << std::endl;
 		res << "#nb eval : " << ilsnbeval << std::endl;
