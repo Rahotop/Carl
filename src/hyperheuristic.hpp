@@ -38,6 +38,16 @@ class FnArray
 
 	private:
 
+	unsigned int randtree() const;
+	void changeweight();
+	void swapweights();
+	void changesign();
+	void changeop(const std::vector<unsigned int>& fnset);
+	void changevar();
+	void swapvar();
+	void addvar(const std::vector<unsigned int>& fnset);
+	void delvar();
+
 	// PARAM
 	unsigned int m_n;
 

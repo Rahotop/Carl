@@ -1,6 +1,7 @@
 #ifndef ALGOGEN_HPP_INCLUDED
 #define ALGOGEN_HPP_INCLUDED
 
+#include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <utility>

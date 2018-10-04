@@ -133,7 +133,7 @@ void FnArray::deleteTree(unsigned int tree)
 }
 
 void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
-{
+{/*
 	unsigned int width = 0;
 	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
 
@@ -268,6 +268,28 @@ void FnArray::mutate(unsigned int tree, const std::vector<unsigned int>& fnset)
 				for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_maxsize + tree] = true;
 			}
 		}
+	}*/
+
+	tree = tree;
+
+	if(m_size)
+	{
+		if(!(rand()%8))
+			changeweight();
+		else if(!(rand()%7))
+			swapweights();
+		else if(!(rand()%6))
+			changesign();
+		else if(!(rand()%5))
+			changeop(fnset);
+		else if(!(rand()%4))
+			changevar();
+		else if(!(rand()%3))
+			swapvar();
+		else if(!(rand()%2))
+			addvar(fnset);
+		else
+			delvar();
 	}
 }
 
@@ -467,6 +489,256 @@ void FnArray::show(std::ostream& out)
 			out << m_not[i*m_width+j] << " ";
 		}
 		out << std::endl << std::endl;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+unsigned int FnArray::randtree() const
+{
+	return rand()%m_size;
+}
+
+void FnArray::changeweight()
+{
+	unsigned int tree = randtree();
+
+	m_weights[tree] = (float)(rand()%10000)/10000.;
+}
+
+void FnArray::swapweights()
+{
+	if(m_size > 1)
+	{
+		unsigned int tree1 = randtree();
+		unsigned int tree2 = randtree();
+		while(tree1 == tree2) tree2 = randtree();
+
+
+		float tmp = m_weights[tree1];
+		m_weights[tree1] = m_weights[tree2];
+		m_weights[tree2] = tmp;
+	}
+}
+
+void FnArray::changesign()
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	unsigned int mutate = rand()%width;
+
+
+	m_not[tree*m_width + mutate] = !m_not[tree*m_width + mutate];
+}
+
+void FnArray::changeop(const std::vector<unsigned int>& fnset)
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+
+	if(width >= 3)
+	{
+		unsigned int mutate = rand()%width;
+		while(m_trees[tree*m_width + mutate] >= 16) mutate = rand()%width;
+
+
+		m_trees[tree*m_width + mutate] = fnset[rand()%fnset.size()];
+		m_not[tree*m_width + mutate] = rand()%2;
+	}
+}
+
+void FnArray::changevar()
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	unsigned int mutate = rand()%width;
+	while(m_trees[tree*m_width + mutate] < 16) mutate = rand()%width;
+
+
+	m_trees[tree*m_width + mutate] = rand()%m_n + 16;
+	m_not[tree*m_width + mutate] = rand()%2;
+	
+
+	for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + tree] = false;
+	for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_maxsize + tree] = true;
+}
+
+void FnArray::swapvar()
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+
+	if(width >= 3)
+	{
+		unsigned int mutate1 = rand()%width;
+		while(m_trees[tree*m_width + mutate1] < 16) mutate1 = rand()%width;
+
+		unsigned int mutate2 = rand()%width;
+		while(m_trees[tree*m_width + mutate2] < 16 || mutate2 == mutate1) mutate2 = rand()%width;
+
+
+		unsigned int tmp = m_trees[tree*m_width + mutate1];
+		m_trees[tree*m_width + mutate1] = m_trees[tree*m_width + mutate2];
+		m_trees[tree*m_width + mutate2] = tmp;
+
+		bool tmpn = m_not[tree*m_width + mutate1];
+		m_not[tree*m_width + mutate1] = m_not[tree*m_width + mutate2];
+		m_not[tree*m_width + mutate2] = tmpn;
+	}
+}
+
+void FnArray::addvar(const std::vector<unsigned int>& fnset)
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+
+	if(width < m_width)
+	{
+		unsigned int mutate = rand()%width;
+		while(m_trees[tree*m_width + mutate] < 16) mutate = rand()%width;
+
+
+		unsigned int *tmp = new unsigned int[m_width];
+		bool *tmpn = new bool[m_width];
+		for(unsigned int i(0); i < m_width; ++i) tmp[i] = 0;
+		for(unsigned int i(0); i < m_width; ++i) tmpn[i] = 0;
+
+		for(unsigned int i(0); i < mutate; ++i) tmp[i] = m_trees[tree*m_width + i];
+		for(unsigned int i(0); i < mutate; ++i) tmpn[i] = m_not[tree*m_width + i];
+		if(rand()%2)
+		{
+			tmp[mutate] = m_trees[tree*m_width + mutate];
+			tmp[mutate+1] = rand()%m_n + 16;
+
+			tmpn[mutate] = m_not[tree*m_width + mutate];
+			tmpn[mutate+1] = rand()%2;
+		}
+		else
+		{
+			tmp[mutate] = rand()%m_n + 16;
+			tmp[mutate+1] = m_trees[tree*m_width + mutate];
+
+			tmpn[mutate] = rand()%2;
+			tmpn[mutate+1] = m_not[tree*m_width + mutate];
+		}
+
+		tmp[mutate+2] = fnset[rand()%fnset.size()];
+		tmpn[mutate+2] = rand()%2;
+		for(unsigned int i(mutate+1); i < m_width-2; ++i) tmp[i+2] = m_trees[tree*m_width + i];
+		for(unsigned int i(mutate+1); i < m_width-2; ++i) tmpn[i+2] = m_not[tree*m_width + i];
+
+		for(unsigned int i(0); i < m_width; ++i) m_trees[tree*m_width + i] = tmp[i];
+		for(unsigned int i(0); i < m_width; ++i) m_not[tree*m_width + i] = tmpn[i];
+
+		delete[] tmp;
+		delete[] tmpn;
+
+
+		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + tree] = false;
+		for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15) m_in[(m_trees[tree*m_width + i]-16)*m_maxsize + tree] = true;
+	}
+}
+
+void FnArray::delvar()
+{
+	unsigned int tree = randtree();
+
+	unsigned int width = 0;
+	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+
+	if(width >= 3)
+	{
+		unsigned int mutate = rand()%width;
+		while(m_trees[tree*m_width + mutate] >= 16) mutate = rand()%width;
+
+
+		unsigned int *tmp = new unsigned int[m_width];
+		bool *tmpn = new bool[m_width];
+
+		unsigned int tmp2 = 2;
+		unsigned int start = mutate;
+		while(tmp2)
+		{
+			--start;
+			tmp2 += m_trees[tree*m_width + start] < 16;
+			tmp2 -= m_trees[tree*m_width + start] >= 16;
+		}
+
+		unsigned int save = mutate-1;
+		if(m_trees[tree*m_width + mutate-1] >= 16)
+		{
+			if(rand()%2)
+				save = mutate-2;
+		}
+		else
+		{
+			if(rand()%2)
+			{
+				tmp2 = 2;
+				unsigned int start2 = save;
+				while(tmp2)
+				{
+					--start2;
+					tmp2 += m_trees[tree*m_width + start2] < 16;
+					tmp2 -= m_trees[tree*m_width + start2] >= 16;
+				}
+
+				save = start2-1;
+			}
+		}
+
+		tmp2 = 2*(m_trees[tree*m_width + save] < 16);
+		unsigned int start2 = save;
+		while(tmp2)
+		{
+			--start2;
+			tmp2 += m_trees[tree*m_width + start2] < 16;
+			tmp2 -= m_trees[tree*m_width + start2] >= 16;
+		}
+
+
+		unsigned int i(0);
+		for(; i < start; ++i) tmp[i] = m_trees[tree*m_width + i];
+		for(unsigned int j(start2); j <= save; ++i,++j) tmp[i] = m_trees[tree*m_width + j];
+		for(unsigned int j(1); j+mutate < m_width; ++i,++j) tmp[i] = m_trees[tree*m_width + mutate+j];
+		if(i < m_width)
+			tmp[i] = m_n+16;
+
+
+		i = 0;
+		for(; i < start; ++i) tmpn[i] = m_not[tree*m_width + i];
+		for(unsigned int j(start2); j <= save; ++i,++j) tmpn[i] = m_not[tree*m_width + j];
+		for(unsigned int j(1); j+mutate < m_width; ++i,++j) tmpn[i] = m_not[tree*m_width + mutate+j];
+
+
+		bool clean = false;
+		for(unsigned int j(0); j < m_width; ++j)
+		{
+			tmp[j] = (clean) ? 0 : tmp[j];
+			clean = (tmp[j] == m_n+16) || clean;
+			tmpn[j] = (clean) ? 0 : tmpn[j];
+		}
+
+
+		for(unsigned int j(0); j < m_width; ++j) m_trees[tree*m_width + j] = tmp[j];
+		for(unsigned int i(0); i < m_width; ++i) m_not[tree*m_width + i] = tmpn[i];
+
+		delete[] tmp;
+		delete[] tmpn;
+
+
+		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + tree] = false;
+		for(unsigned int i(0); i < width; ++i) if(m_trees[tree*m_width + i] > 15 && m_trees[tree*m_width + i] != m_n+16) m_in[(m_trees[tree*m_width + i]-16)*m_maxsize + tree] = true;
 	}
 }
 
