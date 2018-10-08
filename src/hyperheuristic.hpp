@@ -117,6 +117,8 @@ class HyperHeuritic
 		m_n = pb.getN();
 		m_s = new bool[m_n];
 		for(unsigned int i(0); i < m_n; ++i) m_s[i] = rand()%2;
+		bool *bestSol = new bool[m_n];
+		for(unsigned int i(0); i < m_n; ++i) bestSol[i] = m_s[i];
 
 
 		// OUTPUT
@@ -149,7 +151,10 @@ class HyperHeuritic
 				m_pop.pop_back();
 			}
 			if(best < m_pop.back()->getfitness())
+			{
 				best = m_pop.back()->getfitness();
+				for(unsigned int i(0); i < m_n; ++i) bestSol[i] = m_s[i];
+			}
 			
 			// SAVE
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " ";
@@ -168,6 +173,11 @@ class HyperHeuritic
 		res << "#fitness max : " << pb.evaluate(bestils) << std::endl;
 		res << "#nb eval : " << ilsnbeval << std::endl;
 		delete[] bestils;
+
+		res << std::endl << "Sol : ";
+		for(unsigned int i(0); i < m_n; ++i) res << bestSol[i];
+		res << std::endl;
+		delete[] bestSol;
 
 
 		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";

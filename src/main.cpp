@@ -22,6 +22,7 @@ int main(int argc, char **argv)
 
 	bool hh = false;
 	bool ag = false;
+	bool sls = false;
 	bool ms = false;
 	bool nk = false;
 	bool om = false;
@@ -66,6 +67,11 @@ int main(int argc, char **argv)
 		else if("-ag" == std::string(argv[i]))
 		{
 			ag = true;
+			--i;
+		}
+		else if("-ils" == std::string(argv[i]))
+		{
+			sls = true;
 			--i;
 		}
 		else if("-nbind" == std::string(argv[i]))
@@ -160,14 +166,14 @@ int main(int argc, char **argv)
 			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
 		}
 		
-		if(nk && ag)
+		else if(nk && ag)
 		{
 			NK inst(path);
 			AlgoGen algo(nbind,size,width);
 			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
 		}
 		
-		if(om && ag)
+		else if(om && ag)
 		{
 			OneMax inst(omn);
 			AlgoGen algo(nbind,size,width);
@@ -175,7 +181,7 @@ int main(int argc, char **argv)
 		}
 
 
-		if(ms && hh)
+		else if(ms && hh)
 		{/*
 			std::ofstream data("dataNfin+add");
 			for(unsigned int it(250); it <= 1000; it+=250)
@@ -205,22 +211,35 @@ int main(int argc, char **argv)
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 		
-		if(nk && hh)
+		else if(nk && hh)
 		{
 			NK inst(path);
 			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 		
-		if(om && hh)
+		else if(om && hh)
 		{
 			OneMax inst(omn);
 			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
 
+		else if(sls && nk)
+		{
+			NK inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, &nbeval);
+		}
 
-		if(ms||nk||om)
+		else
+		{
+			std::cout << "Combinaison inconnue" << std::endl;
+		}
+
+
+		if(hh||ag)
 			plot(out,id+rp);
 	}
 

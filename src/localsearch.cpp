@@ -181,16 +181,16 @@ bool *ils(std::ostream& out, MaxSat& ms, unsigned int cycles, unsigned int *nbEv
 			delete[] best;
 			best = s;
 			score = tmp;
-			out << i+1 << " " << score << " " << *nbEval << "\n";
+			out << i+1 << " " << score << " " << *nbEval << " " << score << "\n";
 		}
 		else
 		{
 			delete[] s;
-			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+			out << i+1 << " " << scoreinit << " " << *nbEval << " " << score << "\n";
 		}
 	}
 
-	out << cycles << " " << score << "\n";
+	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
 	return best;
 }
@@ -212,16 +212,16 @@ bool *ils(std::ostream& out, NK& nk, unsigned int cycles, unsigned int *nbEval)
 			delete[] best;
 			best = s;
 			score = tmp;
-			out << i+1 << " " << score << " " << *nbEval << "\n";
+			out << i+1 << " " << score << " " << *nbEval << " " << score << "\n";
 		}
 		else
 		{
 			delete[] s;
-			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+			out << i+1 << " " << scoreinit << " " << *nbEval << " " << score << "\n";
 		}
 	}
 
-	out << cycles << " " << score << "\n";
+	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
 	return best;
 }
@@ -243,16 +243,16 @@ bool *ils(std::ostream& out, MSmemory& mm, unsigned int cycles, unsigned int *nb
 			delete[] best;
 			best = s;
 			score = tmp;
-			out << i+1 << " " << score << " " << *nbEval << "\n";
+			out << i+1 << " " << score << " " << *nbEval << " " << score << "\n";
 		}
 		else
 		{
 			delete[] s;
-			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+			out << i+1 << " " << scoreinit << " " << *nbEval << " " << score << "\n";
 		}
 	}
 
-	out << cycles << " " << score << "\n";
+	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
 	return best;
 }
@@ -274,16 +274,16 @@ bool *ils(std::ostream& out, OneMax& om, unsigned int cycles, unsigned int *nbEv
 			delete[] best;
 			best = s;
 			score = tmp;
-			out << i+1 << " " << score << " " << *nbEval << "\n";
+			out << i+1 << " " << score << " " << *nbEval << " " << score << "\n";
 		}
 		else
 		{
 			delete[] s;
-			out << i+1 << " " << scoreinit << " " << *nbEval << "\n";
+			out << i+1 << " " << scoreinit << " " << *nbEval << " " << score << "\n";
 		}
 	}
 
-	out << cycles << " " << score << "\n";
+	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
 	return best;
 }
