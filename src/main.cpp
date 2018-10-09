@@ -233,6 +233,14 @@ int main(int argc, char **argv)
 			delete[] ils(ilsout, inst, iteration, &nbeval);
 		}
 
+		else if(sls && ms)
+		{
+			MaxSat inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, &nbeval);
+		}
+
 		else
 		{
 			std::cout << "Combinaison inconnue" << std::endl;
