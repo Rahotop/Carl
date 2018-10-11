@@ -174,7 +174,6 @@ class HyperHeuritic
 		for(unsigned int i(0); i < m_n; ++i) res << bestSol[i];
 		res << std::endl;
 		delete[] bestSol;
-		delete bestInd;
 
 
 		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
@@ -188,6 +187,7 @@ class HyperHeuritic
 		res << std::endl;
 
 		bestInd->show(res);
+		delete bestInd;
 
 		for(unsigned int i(0); i < m_pop.size(); ++i)
 		{
