@@ -126,12 +126,14 @@ class HyperHeuritic
 		std::ofstream res(file+".txt");
 		unsigned int nbEval = 0;
 		float best = 0.;
+		FnArray *bestInd = nullptr;
 
 
 		// INIT POP
 		((*this).*in)(newSize);
 		nbEval = evalPop(pb, m_s);
 		data << "0 " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << nbEval << "\n";
+		bestInd = new FnArray(*m_pop.back());
 
 
 		// LS
@@ -150,10 +152,12 @@ class HyperHeuritic
 				m_pop[0] = m_pop[1];
 				m_pop.pop_back();
 			}
-			if(best < m_pop.back()->getfitness())
+			if(best <= m_pop.back()->getfitness())
 			{
 				best = m_pop.back()->getfitness();
-				for(unsigned int i(0); i < m_n; ++i) bestSol[i] = m_s[i];
+				delete bestInd;
+				bestInd = new FnArray(*m_pop.back());
+				for(unsigned int i(0); i < m_n; ++i) bestSol[i] = m_pop.back()->getSol()[i];
 			}
 			
 			// SAVE
@@ -165,19 +169,12 @@ class HyperHeuritic
 		res << "nb eval (solutions) : " << nbEval << std::endl;
 		res << "nb eval (f obj) : " << pb.getnbeval() << std::endl;
 		res << "fitness max : " << best << std::endl;
-		res << "\n#ILS :\n";
-
-		unsigned int ilsnbeval = 0;
-		bool *bestils = ils(data, pb, 20000, &ilsnbeval);
-		data << "\n0 " << pb.evaluate(bestils) << "\n" << it << " " << pb.evaluate(bestils) << std::endl;
-		res << "#fitness max : " << pb.evaluate(bestils) << std::endl;
-		res << "#nb eval : " << ilsnbeval << std::endl;
-		delete[] bestils;
 
 		res << std::endl << "Sol : ";
 		for(unsigned int i(0); i < m_n; ++i) res << bestSol[i];
 		res << std::endl;
 		delete[] bestSol;
+		delete bestInd;
 
 
 		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";
@@ -189,6 +186,8 @@ class HyperHeuritic
 			res << std::endl;
 		}
 		res << std::endl;
+
+		bestInd->show(res);
 
 		for(unsigned int i(0); i < m_pop.size(); ++i)
 		{
