@@ -164,7 +164,7 @@ class HyperHeuritic
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " ";
 			data << m_pop.back()->propSat(m_pop.back()->getSol()) << " " << best << std::endl;
 		}
-		data << std::endl << std::endl;
+		data << std::endl;
 
 		res << "nb eval (solutions) : " << nbEval << std::endl;
 		res << "nb eval (f obj) : " << pb.getnbeval() << std::endl;
@@ -174,6 +174,15 @@ class HyperHeuritic
 		for(unsigned int i(0); i < m_n; ++i) res << bestSol[i];
 		res << std::endl;
 		delete[] bestSol;
+
+		for(unsigned int i(0); i < 10000000; ++i)
+		{
+			bool *s = new bool[m_n];
+			for(unsigned int j(0); j < m_n; ++j) s[j] = rand()%2;
+
+			data << bestInd->evaluate(s) << " " << pb.evaluate(s) << std::endl;
+			delete[] s;
+		}
 
 
 		res << std::endl << "x : " << pb.evaluate(m_s) << " (" << pb.islocopt(m_s) << ")\n\n";

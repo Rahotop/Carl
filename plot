@@ -13,7 +13,4 @@ plot 'data' every :::::0 using 1:2 with lines title 'fitness' ,\
 	'data' every :::::0 using 1:6 with lines title 'propsat' axes x1y2
 
 set output 'correlation.jpg'
-plot 'data' every :::3::3 using 1:2 with points title 'rand' ,\
-	'data' every :::4::4 using 1:2 with points title 'f obj' ,\
-	'data' every :::5::5 using 1:2 with points title 'ind' ,\
-	'data' every :::6::6 using 1:2 with points title 'ils'
+plot 'data' every :::1 using 1:2 with points title 'rand'
