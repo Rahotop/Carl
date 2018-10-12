@@ -164,7 +164,7 @@ class HyperHeuritic
 			data << it << " " << m_pop.back()->getfitness() << " " << m_pop.back()->size() << " " << tmpnbeval << " " << same << " ";
 			data << m_pop.back()->propSat(m_pop.back()->getSol()) << " " << best << std::endl;
 		}
-		data << std::endl;
+		data << std::endl << std::endl;
 
 		res << "nb eval (solutions) : " << nbEval << std::endl;
 		res << "nb eval (f obj) : " << pb.getnbeval() << std::endl;
@@ -203,54 +203,11 @@ class HyperHeuritic
 		bool *ns = m_pop.back()->ls(s, &tmp);
 		m_pop.back()->setfitness(pb.evaluate(ns));
 		return tmp;
-/*
-		unsigned int tmp = 0;
-		bool *ns = new bool[m_n];
-
-		float score = 0.;
-		for(unsigned int i(0); i < 10; ++i)
-		{
-			for(unsigned int i(0); i < m_n; ++i) ns[i] = rand()%2;
-			bool *opt = m_pop.back()->ls(ns, &tmp);
-			score += pb.evaluate(opt);
-		}
-		m_pop.back()->setfitness(score/10.);
-
-		delete[] ns;
-
-		return tmp/10;*/
 	}
 
 	template<class PB>
 	bool next(PB& pb, unsigned int visit, unsigned int newSize, unsigned int& tmpnbeval, unsigned int& nbEval, float& propsame, COND c, NEXT n)
-	{/*
-		unsigned int same = 0;
-		bool *s = m_pop.back()->getSol();
-		unsigned int i = 0;
-		for(; i < visit; ++i)
-		{
-			((*this).*n)(newSize);
-
-			tmpnbeval = evalPop(pb, s);
-			nbEval += tmpnbeval;
-
-			if(!distance(s,m_pop.back()->getSol(),m_n))
-				++same;
-
-			if(((*this).*c)())
-			{
-				propsame = same / (i+1);
-				return true;
-			}
-			else
-			{
-				delete m_pop.back();
-				m_pop.pop_back();
-			}
-		}
-		propsame = (float)same / (float)(i+1.);
-		return false;*/
-
+	{
 		c = c;
 		float all = 1.;
 		propsame = 0.;

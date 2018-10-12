@@ -526,7 +526,7 @@ void FnArray::changesign()
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 	unsigned int mutate = rand()%width;
 
 
@@ -538,7 +538,7 @@ void FnArray::changeop(const std::vector<unsigned int>& fnset)
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 
 	if(width >= 3)
 	{
@@ -556,7 +556,7 @@ void FnArray::changevar()
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 	unsigned int mutate = rand()%width;
 	while(m_trees[tree*m_width + mutate] < 16) mutate = rand()%width;
 
@@ -574,7 +574,7 @@ void FnArray::swapvar()
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 
 	if(width >= 3)
 	{
@@ -600,7 +600,7 @@ void FnArray::addvar(const std::vector<unsigned int>& fnset)
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 
 	if(width < m_width)
 	{
@@ -654,7 +654,7 @@ void FnArray::delvar()
 	unsigned int tree = randtree();
 
 	unsigned int width = 0;
-	for(;m_trees[tree*m_width + width] < m_n+16 && width < m_width; ++width);
+	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 
 	if(width >= 3)
 	{
