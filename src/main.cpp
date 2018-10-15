@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 			delete[] ils(ilsout, inst, iteration, &nbeval);
 		}
 
-		else if(sls && ms)
+		else if(sls && rr)
 		{
 			RoyalRoad inst(omn, rrk);
 			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
