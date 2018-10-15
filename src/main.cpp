@@ -8,6 +8,7 @@
 #include "nk.hpp"
 #include "hyperheuristic.hpp"
 #include "onemax.hpp"
+#include "royalroad.hpp"
 
 void plot(std::string out, unsigned int id);
 
@@ -26,7 +27,9 @@ int main(int argc, char **argv)
 	bool ms = false;
 	bool nk = false;
 	bool om = false;
+	bool rr = false;
 	unsigned int omn = 64;
+	unsigned int rrk = 2;
 	std::string path;
 	unsigned int nbind = 100;
 	unsigned int size = 100;
@@ -58,6 +61,13 @@ int main(int argc, char **argv)
 		{
 			om = true;
 			omn = std::stoi(argv[i+1]);
+		}
+		else if("-rr" == std::string(argv[i]))
+		{
+			rr = true;
+			omn = std::stoi(argv[i+1]);
+			rrk = std::stoi(argv[i+2]);
+			++i;
 		}
 		else if("-hh" == std::string(argv[i]))
 		{
@@ -159,6 +169,7 @@ int main(int argc, char **argv)
 
 	for(unsigned int rp(0); rp < repeat; ++rp)
 	{
+		//Algo Gen
 		if(ms && ag)
 		{
 			MaxSat inst(path);
@@ -179,33 +190,17 @@ int main(int argc, char **argv)
 			AlgoGen algo(nbind,size,width);
 			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
 		}
+		
+		else if(rr && ag)
+		{
+			RoyalRoad inst(omn, rrk);
+			AlgoGen algo(nbind,size,width);
+			algo.run(inst, newsize, iteration, out+"-"+std::to_string(id+rp), pc, pm);
+		}
 
-
+		//Hyper Heuristic
 		else if(ms && hh)
-		{/*
-			std::ofstream data("dataNfin+add");
-			for(unsigned int it(250); it <= 1000; it+=250)
-			{
-				for(unsigned int ns(10); ns <= 40; ns+=10)
-				{
-					for(unsigned int w(3); w <= 15; w+=4)
-					{
-						float tmp = 0.;
-						for(unsigned int i(0); i < 10; ++i)
-						{
-							MaxSat inst(path);
-							HyperHeuritic hyper(size,w);
-							hyper.run(inst, ns, it, out+"-"+std::to_string(id+rp));
-
-							tmp += hyper.finalScore();
-						}
-						tmp /= 10.;
-						data << it << " " << ns << " " << w << " " << tmp << std::endl;
-					}
-				}
-				data << std::endl;
-			}*/
-
+		{
 			MaxSat inst(path);
 			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
@@ -224,7 +219,15 @@ int main(int argc, char **argv)
 			HyperHeuritic hyper(size,width,fnset);
 			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
 		}
+		
+		else if(rr && hh)
+		{
+			RoyalRoad inst(omn, rrk);
+			HyperHeuritic hyper(size,width,fnset);
+			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+		}
 
+		//ILS
 		else if(sls && nk)
 		{
 			NK inst(path);
@@ -240,6 +243,15 @@ int main(int argc, char **argv)
 			unsigned int nbeval = 0;
 			delete[] ils(ilsout, inst, iteration, &nbeval);
 		}
+
+		else if(sls && ms)
+		{
+			RoyalRoad inst(omn, rrk);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, &nbeval);
+		}
+
 
 		else
 		{
