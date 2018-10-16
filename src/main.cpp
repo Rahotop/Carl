@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	bool hh = false;
 	bool ag = false;
 	bool sls = false;
+	bool tabou = false;
 	bool ms = false;
 	bool nk = false;
 	bool om = false;
@@ -82,6 +83,11 @@ int main(int argc, char **argv)
 		else if("-ils" == std::string(argv[i]))
 		{
 			sls = true;
+			--i;
+		}
+		else if("-tabu" == std::string(argv[i]))
+		{
+			tabou = true;
 			--i;
 		}
 		else if("-nbind" == std::string(argv[i]))
@@ -250,6 +256,15 @@ int main(int argc, char **argv)
 			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
 			unsigned int nbeval = 0;
 			delete[] ils(ilsout, inst, iteration, &nbeval);
+		}
+
+		//TABU
+		else if(tabou && nk)
+		{
+			NK inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] tabu(ilsout, inst, iteration, &nbeval);
 		}
 
 

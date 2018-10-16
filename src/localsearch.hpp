@@ -1,6 +1,8 @@
 #ifndef LOCALSEARCH_INCLUDED_HPP
 #define LOCALSEARCH_INCLUDED_HPP
 
+#include <iostream>
+#include <list>
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
@@ -80,6 +82,78 @@ bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int *nbEval =
 
 	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
+	return best;
+}
+
+template <class PB>
+bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval = nullptr)
+{
+	bool *s = new bool[pb.getN()];
+	bool *best = new bool[pb.getN()];
+	float score = 0.;
+	float scorebest = 0.;
+
+	for(unsigned int i(0); i < pb.getN(); ++i)
+	{
+		s[i] = rand()%2;
+		best[i] = s[i];
+	}
+	score = pb.evaluate(s);
+	scorebest = score;
+
+
+	std::list<unsigned int> tabou;
+	std::vector<unsigned int> next;
+	for(unsigned int i(0); i < pb.getN(); ++i) next.push_back(i);
+
+	unsigned int tmpnbeval = 1;
+
+	for(unsigned int i(0); tmpnbeval < evalmax; ++i)
+	{
+		if(tabou.size() > 10)
+		{
+			next.push_back(tabou.front());
+			tabou.pop_front();
+		}
+		std::random_shuffle(next.begin(), next.end());
+
+		unsigned int tmp = 0;
+		s[next[tmp]] = !s[next[tmp]];
+		score = pb.evaluate(s);
+		s[next[tmp]] = !s[next[tmp]];
+
+		for(unsigned int j(1); j < next.size(); ++j)
+		{
+			s[next[j]] = !s[next[j]];
+			float tmpscore = pb.evaluate(s);
+			s[next[j]] = !s[next[j]];
+
+			if(tmpscore > score)
+			{
+				score = tmpscore;
+				tmp = j;
+			}
+		}
+		tmpnbeval += next.size();
+
+		s[next[tmp]] = !s[next[tmp]];
+		tabou.push_back(next[tmp]);
+		next[tmp] = next[next.size()-1];
+		next.pop_back();
+
+		if(score > scorebest)
+		{
+			scorebest = score;
+			for(unsigned int j(0); j < pb.getN(); ++j) best[j] = s[j];
+		}
+
+		out << i << " " << scorebest << std::endl;
+	}
+
+	if(nbEval)
+		*nbEval += tmpnbeval;
+
+	delete[] s;
 	return best;
 }
 
