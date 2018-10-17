@@ -54,6 +54,46 @@ bool* localsearch(PB& pb, unsigned int *nbEval = nullptr)
 }
 
 template <class PB>
+bool* localsearch(PB& pb, bool *s, unsigned int *nbEval = nullptr)
+{
+	float score = pb.evaluate(s);
+
+	std::vector<unsigned int> next;
+	for(unsigned int i(0); i < pb.getN(); ++i) next.push_back(i);
+
+	unsigned int tmpnbeval = pb.getnbeval();
+	bool improved = true;
+
+	while(improved)
+	{
+		std::random_shuffle(next.begin(), next.end());
+		improved = false;
+
+		for(unsigned int i(0); i < pb.getN(); ++i)
+		{
+			s[next[i]] = !s[next[i]];
+			float tmp = pb.evaluate(s);
+
+			if(tmp > score)
+			{
+				score = tmp;
+				improved = true;
+				break;
+			}
+			else
+			{
+				s[next[i]] = !s[next[i]];
+			}
+		}
+	}
+
+	if(nbEval)
+		*nbEval += pb.getnbeval() - tmpnbeval -1;
+
+	return s;
+}
+
+template <class PB>
 bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int *nbEval = nullptr)
 {
 	bool *best = localsearch(pb, nbEval);
@@ -86,7 +126,41 @@ bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int *nbEval =
 }
 
 template <class PB>
-bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval = nullptr)
+bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int perturb, unsigned int *nbEval = nullptr)
+{
+	bool *s = localsearch(pb, nbEval);
+	float score = pb.evaluate(s);
+	out << "0 " << score << " 0\n";
+
+	bool *best = new bool[pb.getN()];
+	for(unsigned int i(0); i < pb.getN(); ++i) best[i] = s[i];
+
+	for(unsigned int i(0); i < cycles; ++i)
+	{
+		for(unsigned int j(0); j < perturb; ++j)
+		{
+			unsigned int tmp = rand()%pb.getN();
+			s[tmp] = !s[tmp];
+		}
+
+		localsearch(pb, s, nbEval);
+		float tmp = pb.evaluate(s);
+
+		if(tmp > score)
+		{
+			for(unsigned int j(0); j < pb.getN(); ++j) best[j] = s[j];
+			score = tmp;
+		}
+		out << i+1 << " " << tmp << " " << *nbEval << " " << score << "\n";
+	}
+
+	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
+
+	return best;
+}
+
+template <class PB>
+bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int size, unsigned int *nbEval = nullptr)
 {
 	bool *s = new bool[pb.getN()];
 	bool *best = new bool[pb.getN()];
@@ -110,7 +184,7 @@ bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval
 
 	for(unsigned int i(0); tmpnbeval < evalmax; ++i)
 	{
-		if(tabou.size() > 10)
+		if(tabou.size() > size)
 		{
 			next.push_back(tabou.front());
 			tabou.pop_front();
@@ -136,9 +210,10 @@ bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval
 		}
 		tmpnbeval += next.size();
 
+
 		s[next[tmp]] = !s[next[tmp]];
 		tabou.push_back(next[tmp]);
-		next[tmp] = next[next.size()-1];
+		next[tmp] = next.back();
 		next.pop_back();
 
 		if(score > scorebest)
@@ -147,7 +222,7 @@ bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval
 			for(unsigned int j(0); j < pb.getN(); ++j) best[j] = s[j];
 		}
 
-		out << i << " " << scorebest << std::endl;
+		out << i << " " << score << " " << scorebest << std::endl;
 	}
 
 	if(nbEval)

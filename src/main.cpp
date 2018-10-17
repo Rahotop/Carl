@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	bool hh = false;
 	bool ag = false;
 	bool sls = false;
+	bool ilsp = false;
 	bool tabou = false;
 	bool ms = false;
 	bool nk = false;
@@ -85,10 +86,15 @@ int main(int argc, char **argv)
 			sls = true;
 			--i;
 		}
+		else if("-ilsp" == std::string(argv[i]))
+		{
+			ilsp = true;
+			cycle = std::stoi(argv[i+1]);
+		}
 		else if("-tabu" == std::string(argv[i]))
 		{
 			tabou = true;
-			--i;
+			cycle = std::stoi(argv[i+1]);
 		}
 		else if("-nbind" == std::string(argv[i]))
 			nbind = std::stoi(argv[i+1]);
@@ -258,13 +264,46 @@ int main(int argc, char **argv)
 			delete[] ils(ilsout, inst, iteration, &nbeval);
 		}
 
+		//ILSP
+		else if(ilsp && nk)
+		{
+			NK inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+		}
+
+		else if(ilsp && ms)
+		{
+			MaxSat inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+		}
+
+		else if(ilsp && rr)
+		{
+			RoyalRoad inst(omn, rrk);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+		}
+
 		//TABU
 		else if(tabou && nk)
 		{
 			NK inst(path);
 			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
 			unsigned int nbeval = 0;
-			delete[] tabu(ilsout, inst, iteration, &nbeval);
+			delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
+		}
+
+		else if(tabou && ms)
+		{
+			MaxSat inst(path);
+			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			unsigned int nbeval = 0;
+			delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
 		}
 
 
