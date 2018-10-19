@@ -10,8 +10,6 @@
 #include "onemax.hpp"
 #include "royalroad.hpp"
 
-void plot(std::string out, unsigned int id);
-
 int main(int argc, char **argv)
 {
 	INIT tabinit[] = {&HyperHeuritic::initrand, &HyperHeuritic::initall};
@@ -311,43 +309,11 @@ int main(int argc, char **argv)
 		{
 			std::cout << "Combinaison inconnue" << std::endl;
 		}
-
-
-		if(hh||ag)
-			plot(out,id+rp);
 	}
 
 	return 0;
 }
 
-void plot(std::string path, unsigned int id)
-{
-	std::ifstream in("plot");
-	std::ofstream out(path+"-"+std::to_string(id)+"-plot");
-
-	while(!in.eof())
-	{
-		std::string tmp;
-		in >> tmp;
-
-		if(tmp == "'fitness.jpg'")
-			out << "'" << path << "-" << id << "-fitness.jpg'\n";
-		else if(tmp == "'nbEval.jpg'")
-			out << "'" << path << "-" << id << "-nbEval.jpg'\n";
-		else if(tmp == "'ils.jpg'")
-			out << "'" << path << "-" << id << "-ils.jpg'\n";
-		else if(tmp == "'correlation.jpg'")
-			out << "'" << path << "-" << id << "-correlation.jpg'\n";
-		else if(tmp == "'propsat.jpg'")
-			out << "'" << path << "-" << id << "-propsat.jpg'\n";
-		else if(tmp == "'data'")
-			out << "'" << path << "-" << id << "' ";
-		else if(tmp == ",\\" || tmp == "x1y2" || tmp == "y2tics" || tmp == "1000")
-			out << tmp << "\n";
-		else
-			out << tmp << " ";
-	}
-}
 
 
 
