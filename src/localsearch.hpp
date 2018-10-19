@@ -94,14 +94,14 @@ bool* localsearch(PB& pb, bool *s, unsigned int *nbEval = nullptr)
 }
 
 template <class PB>
-bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int *nbEval = nullptr)
+bool* ils(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int *nbEval = nullptr)
 {
 	bool *best = localsearch(pb, nbEval);
 	float score = pb.evaluate(best);
 	float scoreinit = score;
 	out << "0 " << score << " 0\n";
 
-	for(unsigned int i(0); i < cycles; ++i)
+	for(unsigned int i(0); *nbEval < evalmax; ++i)
 	{
 		bool *s = localsearch(pb, nbEval);
 		float tmp = pb.evaluate(s);
@@ -120,13 +120,11 @@ bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int *nbEval =
 		}
 	}
 
-	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
-
 	return best;
 }
 
 template <class PB>
-bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int perturb, unsigned int *nbEval = nullptr)
+bool* ils(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int perturb, unsigned int *nbEval = nullptr)
 {
 	bool *s = localsearch(pb, nbEval);
 	float score = pb.evaluate(s);
@@ -135,7 +133,7 @@ bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int perturb, 
 	bool *best = new bool[pb.getN()];
 	for(unsigned int i(0); i < pb.getN(); ++i) best[i] = s[i];
 
-	for(unsigned int i(0); i < cycles; ++i)
+	for(unsigned int i(0); *nbEval < evalmax; ++i)
 	{
 		for(unsigned int j(0); j < perturb; ++j)
 		{
@@ -153,8 +151,6 @@ bool* ils(std::ostream& out, PB& pb, unsigned int cycles, unsigned int perturb, 
 		}
 		out << i+1 << " " << tmp << " " << *nbEval << " " << score << "\n";
 	}
-
-	out << cycles << " " << score << " " << *nbEval << " " << score << "\n";
 
 	return best;
 }

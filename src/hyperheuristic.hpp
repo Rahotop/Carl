@@ -111,7 +111,7 @@ class HyperHeuritic
 	public:
 
 	template<class PB>
-	void run(PB& pb, INIT in, COND co, NEXT ne, unsigned int newSize, unsigned int visit, unsigned int nbit, const std::string& file, bool everyoutputs)
+	void run(PB& pb, INIT in, COND co, NEXT ne, unsigned int newSize, unsigned int visit, unsigned int evalmax, const std::string& file, bool everyoutputs)
 	{
 		// PARAM
 		m_n = pb.getN();
@@ -137,16 +137,14 @@ class HyperHeuritic
 
 
 		// LS
-		bool improved = true;
-		unsigned int it(1);
-		for(; improved && it <= nbit; ++it)
+		for(unsigned int it(1); nbEval < evalmax; ++it)
 		{
 			unsigned int tmpnbeval = 0;
 			float same = 0.;
 
-			improved = next(pb, visit, newSize, tmpnbeval, nbEval, same, co, ne);
+			next(pb, visit, newSize, tmpnbeval, nbEval, same, co, ne);
 
-			if(improved && !everyoutputs)
+			if(!everyoutputs)
 			{
 				delete m_pop[0];
 				m_pop[0] = m_pop[1];
@@ -215,7 +213,7 @@ class HyperHeuritic
 	}
 
 	template<class PB>
-	bool next(PB& pb, unsigned int visit, unsigned int newSize, unsigned int& tmpnbeval, unsigned int& nbEval, float& propsame, COND c, NEXT n)
+	void next(PB& pb, unsigned int visit, unsigned int newSize, unsigned int& tmpnbeval, unsigned int& nbEval, float& propsame, COND c, NEXT n)
 	{
 		c = c;
 		float all = 1.;
@@ -272,7 +270,6 @@ class HyperHeuritic
 		m_pop.push_back(ind);
 
 		propsame /= all;
-		return true;
 	}
 };
 
