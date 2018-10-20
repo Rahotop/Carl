@@ -20,7 +20,7 @@ class FnArray
 	void addRandom(const std::vector<unsigned int>& fnset);
 	void deleteRandom();
 	void deleteTree(unsigned int tree);
-	void mutate(unsigned int tree, const std::vector<unsigned int>& fnset);
+	void mutate(const std::vector<unsigned int>& fnset);
 
 	float propSat(bool *s) const;
 	float evaluate(bool *s);
@@ -85,15 +85,7 @@ class HyperHeuritic
 	inline float finalScore() const { return m_pop.back()->getfitness(); }
 	void initrand(unsigned int newSize);
 	void initall(unsigned int newSize);
-	void mut1(unsigned int newSize);
-	void mut2(unsigned int newSize);
-	void mut3(unsigned int newSize);
-	void mut1add(unsigned int newSize);
-	void mutadd(unsigned int newSize);
-	void mutnew(unsigned int newSize);
-	bool sup();
-	bool supeq();
-
+	void mut();
 	private:
 
 	// PARAMS
@@ -111,7 +103,7 @@ class HyperHeuritic
 	public:
 
 	template<class PB>
-	void run(PB& pb, INIT in, COND co, NEXT ne, unsigned int newSize, unsigned int visit, unsigned int evalmax, const std::string& file, bool everyoutputs)
+	void run(PB& pb, INIT in, unsigned int newSize, unsigned int visit, unsigned int evalmax, const std::string& file)
 	{
 		// PARAM
 		m_n = pb.getN();
@@ -140,14 +132,12 @@ class HyperHeuritic
 		{
 			float same = 0.;
 
-			next(pb, visit, newSize, same, co, ne);
+			next(pb, visit, same);
 
-			if(!everyoutputs)
-			{
-				delete m_pop[0];
-				m_pop[0] = m_pop[1];
-				m_pop.pop_back();
-			}
+			delete m_pop[0];
+			m_pop[0] = m_pop[1];
+			m_pop.pop_back();
+
 			if(best <= m_pop.back()->getfitness())
 			{
 				best = m_pop.back()->getfitness();
@@ -199,14 +189,13 @@ class HyperHeuritic
 	}
 
 	template<class PB>
-	void next(PB& pb, unsigned int visit, unsigned int newSize, float& propsame, COND c, NEXT n)
+	void next(PB& pb, unsigned int visit, float& propsame)
 	{
-		c = c;
 		float all = 1.;
 		propsame = 0.;
 		bool *s = m_pop.back()->getSol();
 
-		((*this).*n)(newSize);
+		mut();
 		evalPop(pb, s);
 
 		float score = m_pop.back()->getfitness();
@@ -216,7 +205,7 @@ class HyperHeuritic
 		{
 			delete ind;
 
-			((*this).*n)(newSize);
+			mut();
 			evalPop(pb, s);
 
 			score = m_pop.back()->getfitness();
@@ -229,8 +218,7 @@ class HyperHeuritic
 
 		for(unsigned int i(0); i < visit; ++i)
 		{
-			((*this).*n)(newSize);
-
+			mut();
 			evalPop(pb, s);
 
 			++all;

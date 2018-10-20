@@ -13,11 +13,7 @@
 int main(int argc, char **argv)
 {
 	INIT tabinit[] = {&HyperHeuritic::initrand, &HyperHeuritic::initall};
-	NEXT tabnext[] = {&HyperHeuritic::mut1, &HyperHeuritic::mut2, &HyperHeuritic::mut3, &HyperHeuritic::mut1add, &HyperHeuritic::mutadd, &HyperHeuritic::mutnew};
-	COND tabcond[] = {&HyperHeuritic::sup, &HyperHeuritic::supeq};
 	unsigned int init = 0;
-	unsigned int next = 0;
-	unsigned int cond = 0;
 
 	bool hh = false;
 	bool ag = false;
@@ -126,46 +122,6 @@ int main(int argc, char **argv)
 			init = 1;
 			--i;
 		}
-		else if("-mut1" == std::string(argv[i]))
-		{
-			next = 0;
-			--i;
-		}
-		else if("-mut2" == std::string(argv[i]))
-		{
-			next = 1;
-			--i;
-		}
-		else if("-mut3" == std::string(argv[i]))
-		{
-			next = 2;
-			--i;
-		}
-		else if("-mut1add" == std::string(argv[i]))
-		{
-			next = 3;
-			--i;
-		}
-		else if("-mutadd" == std::string(argv[i]))
-		{
-			next = 4;
-			--i;
-		}
-		else if("-mutnew" == std::string(argv[i]))
-		{
-			next = 5;
-			--i;
-		}
-		else if("-sup" == std::string(argv[i]))
-		{
-			cond = 0;
-			--i;
-		}
-		else if("-supeq" == std::string(argv[i]))
-		{
-			cond = 1;
-			--i;
-		}
 		else if("-fnset" == std::string(argv[i]))
 		{
 			fnset.clear();
@@ -213,28 +169,28 @@ int main(int argc, char **argv)
 		{
 			MaxSat inst(path);
 			HyperHeuritic hyper(size,width,fnset);
-			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+			hyper.run(inst, tabinit[init], newsize, iteration, cycle, out+"-"+std::to_string(id+rp));
 		}
 		
 		else if(nk && hh)
 		{
 			NK inst(path);
 			HyperHeuritic hyper(size,width,fnset);
-			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+			hyper.run(inst, tabinit[init], newsize, iteration, cycle, out+"-"+std::to_string(id+rp));
 		}
 		
 		else if(om && hh)
 		{
 			OneMax inst(omn);
 			HyperHeuritic hyper(size,width,fnset);
-			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+			hyper.run(inst, tabinit[init], newsize, iteration, cycle, out+"-"+std::to_string(id+rp));
 		}
 		
 		else if(rr && hh)
 		{
 			RoyalRoad inst(omn, rrk);
 			HyperHeuritic hyper(size,width,fnset);
-			hyper.run(inst, tabinit[init], tabcond[cond], tabnext[next], newsize, iteration, cycle, out+"-"+std::to_string(id+rp), !cond);
+			hyper.run(inst, tabinit[init], newsize, iteration, cycle, out+"-"+std::to_string(id+rp));
 		}
 
 		//ILS
