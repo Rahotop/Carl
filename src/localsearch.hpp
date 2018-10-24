@@ -218,7 +218,7 @@ bool* tabu(std::ostream& out, PB& pb, unsigned int evalmax, unsigned int size, u
 			for(unsigned int j(0); j < pb.getN(); ++j) best[j] = s[j];
 		}
 
-		out << i << " " << score << " " << scorebest << std::endl;
+		out << i << " " << score << " " << tmpnbeval << " " << scorebest << std::endl;
 	}
 
 	if(nbEval)
