@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -34,12 +35,14 @@ int main(int argc, char **argv)
 	unsigned int iteration = 1000;
 	unsigned int cycle = 1000;
 	std::string out = "data";
+	bool output = true;
 	unsigned int pc = 15;
 	unsigned int pm = 15;
 	unsigned int id = 0;
 	unsigned int repeat = 1;
 	unsigned int seed = time(nullptr);
 	std::vector<unsigned int> fnset = {1,7,9,11,13};
+	std::vector<bool*> nptsol;
 
 	for(int i(1); i < argc; i+= 2)
 	{
@@ -129,6 +132,14 @@ int main(int argc, char **argv)
 			for(unsigned int j(0); j < setsize; ++j)
 				fnset.push_back(std::stoi(argv[i+2+j]));
 		}
+		else if("-nooutput" == std::string(argv[i]) ||
+				"-noout" == std::string(argv[i]) ||
+				"-nout" == std::string(argv[i]) ||
+				"-npt" == std::string(argv[i]))
+		{
+			output = false;
+			--i;
+		}
 	}
 
 	srand(seed);
@@ -197,67 +208,91 @@ int main(int argc, char **argv)
 		else if(sls && nk)
 		{
 			NK inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		else if(sls && ms)
 		{
 			MaxSat inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		else if(sls && rr)
 		{
 			RoyalRoad inst(omn, rrk);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		//ILSP
 		else if(ilsp && nk)
 		{
 			NK inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		else if(ilsp && ms)
 		{
 			MaxSat inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		else if(ilsp && rr)
 		{
 			RoyalRoad inst(omn, rrk);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
+			if(output)
+				delete[] ils(ilsout, inst, iteration, &nbeval);
+			else
+				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
 		}
 
 		//TABU
 		else if(tabou && nk)
 		{
 			NK inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
+			if(output)
+				delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
+			else
+				nptsol.push_back(tabu(ilsout, inst, iteration, cycle, &nbeval));
 		}
 
 		else if(tabou && ms)
 		{
 			MaxSat inst(path);
-			std::ofstream ilsout(out+"-"+std::to_string(id+rp));
+			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
-			delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
+			if(output)
+				delete[] tabu(ilsout, inst, iteration, cycle, &nbeval);
+			else
+				nptsol.push_back(tabu(ilsout, inst, iteration, cycle, &nbeval));
 		}
 
 
@@ -265,6 +300,40 @@ int main(int argc, char **argv)
 		{
 			std::cout << "Combinaison inconnue" << std::endl;
 		}
+	}
+
+	if(!output && nk)
+	{
+		std::ofstream ilsout(out+"-0.txt");
+		NK inst(path);
+		double sum = 0.;
+		for(unsigned int i(0); i < nptsol.size(); ++i)
+		{
+			for(unsigned int j(0); j < inst.getN(); ++j)
+				ilsout << nptsol[i][j];
+			float tmp = inst.evaluate(nptsol[i]);
+			sum += tmp;
+			ilsout << std::endl << tmp << std::endl;
+			delete[] nptsol[i];
+		}
+		ilsout << std::endl << std::setprecision(9) << sum/(double)repeat;
+	}
+
+	if(!output && ms)
+	{
+		std::ofstream ilsout(out+"-0.txt");
+		MaxSat inst(path);
+		double sum = 0.;
+		for(unsigned int i(0); i < nptsol.size(); ++i)
+		{
+			for(unsigned int j(0); j < inst.getN(); ++j)
+				ilsout << nptsol[i][j];
+			float tmp = inst.evaluate(nptsol[i]);
+			sum += tmp;
+			ilsout << std::endl << tmp << std::endl;
+			delete[] nptsol[i];
+		}
+		ilsout << std::endl << std::setprecision(9) << sum/(double)repeat;
 	}
 
 	return 0;
