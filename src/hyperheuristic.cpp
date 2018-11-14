@@ -132,27 +132,30 @@ void FnArray::deleteTree(unsigned int tree)
 	}
 }
 
-void FnArray::mutate(const std::vector<unsigned int>& fnset)
+unsigned int FnArray::mutate(const std::vector<unsigned int>& fnset)
 {
 	if(m_size)
 	{
-		if(!(rand()%8))
+		unsigned int tmp = 1+rand()%8;
+		if(tmp == 1)
 			changeweight();
-		else if(!(rand()%7))
+		else if(tmp == 2)
 			swapweights();
-		else if(!(rand()%6))
+		else if(tmp == 3)
 			changesign();
-		else if(!(rand()%5))
+		else if(tmp == 4)
 			changeop(fnset);
-		else if(!(rand()%4))
+		else if(tmp == 5)
 			changevar();
-		else if(!(rand()%3))
+		else if(tmp == 6)
 			swapvar();
-		else if(!(rand()%2))
+		else if(tmp == 7)
 			addvar(fnset);
 		else
 			delvar();
+		return tmp;
 	}
+	return 0;
 }
 
 float FnArray::propSat(bool *s) const
@@ -333,6 +336,22 @@ bool* FnArray::ls(bool *s, unsigned int *nbEval)
 		*nbEval += tmpEval;
 
 	return m_s;
+}
+
+unsigned int FnArray::getnbvar() const
+{
+	bool *vars = new bool[m_n];
+	for(unsigned int i(0); i < m_n; ++i) vars[i] = false;
+
+	for(unsigned int i(0); i < m_width*m_size; ++i)
+		if(m_trees[i] > 15 && m_trees[i] < m_n+16)
+			vars[m_trees[i]-16] = true;
+
+	unsigned int nbvar = 0;
+	for(unsigned int i(0); i < m_n; ++i) nbvar += vars[i];
+	delete[] vars;
+
+	return nbvar;
 }
 
 void FnArray::show(std::ostream& out)
@@ -643,10 +662,10 @@ void HyperHeuritic::initall(unsigned int newSize)
 	for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);
 }
 
-void HyperHeuritic::mut()
+unsigned int HyperHeuritic::mut()
 {
 	m_pop.push_back(new FnArray(*m_pop.back()));
-	m_pop.back()->mutate(m_fnset);
+	return m_pop.back()->mutate(m_fnset);
 }
 
 
