@@ -245,9 +245,9 @@ int main(int argc, char **argv)
 			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
 			if(output)
-				delete[] ils(ilsout, inst, iteration, &nbeval);
+				delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
 			else
-				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
+				nptsol.push_back(ils(ilsout, inst, iteration, cycle, &nbeval));
 		}
 
 		else if(ilsp && ms)
@@ -256,9 +256,9 @@ int main(int argc, char **argv)
 			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
 			if(output)
-				delete[] ils(ilsout, inst, iteration, &nbeval);
+				delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
 			else
-				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
+				nptsol.push_back(ils(ilsout, inst, iteration, cycle, &nbeval));
 		}
 
 		else if(ilsp && rr)
@@ -267,9 +267,9 @@ int main(int argc, char **argv)
 			std::ofstream ilsout(out+"-"+std::to_string((id+rp)*output));
 			unsigned int nbeval = 0;
 			if(output)
-				delete[] ils(ilsout, inst, iteration, &nbeval);
+				delete[] ils(ilsout, inst, iteration, cycle, &nbeval);
 			else
-				nptsol.push_back(ils(ilsout, inst, iteration, &nbeval));
+				nptsol.push_back(ils(ilsout, inst, iteration, cycle, &nbeval));
 		}
 
 		//TABU
