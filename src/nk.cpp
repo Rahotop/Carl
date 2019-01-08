@@ -1,6 +1,6 @@
 #include "nk.hpp"
 
-NK::NK(const std::string& path) : m_n(0), m_k1(0), m_2k1(0), m_mat(nullptr), m_var(nullptr), m_nbeval(0)
+NK::NK(const std::string& path) : m_n(0), m_k1(0), m_2k1(0), m_mat(nullptr), m_var(nullptr), m_nbeval(0), m_fit(0.), m_s(new bool[1024])
 {
 	std::ifstream in(path.c_str());
 
@@ -28,10 +28,38 @@ NK::NK(const std::string& path) : m_n(0), m_k1(0), m_2k1(0), m_mat(nullptr), m_v
 	}
 }
 
+NK::NK(unsigned int n, unsigned int k) : m_n(n), m_k1(k+1), m_2k1(pow(2,(k+1))), m_mat(new float[(unsigned int)(n*pow(2,(k+1)))]), m_var(new unsigned int[n*(k+1)]), m_nbeval(0), m_fit(0.), m_s(new bool[n])
+{
+	for(unsigned int i(0); i < m_n*m_k1; ++i)
+	{
+		m_var[i] = rand()%n;
+	}
+
+	for(unsigned int i(0); i < m_n*m_2k1; ++i)
+	{
+		m_mat[i] = ((float)(rand()%10000))/(float)10000.;
+	}
+}
+
+NK::NK(const NK& nk) : m_n(nk.m_n), m_k1(nk.m_k1), m_2k1(nk.m_2k1), m_mat(new float[nk.m_n*nk.m_2k1]), m_var(new unsigned int[nk.m_n*nk.m_k1]), m_nbeval(0), m_fit(0.), m_s(new bool[nk.m_n])
+{
+	for(unsigned int i(0); i < m_n*m_k1; ++i)
+	{
+		m_var[i] = nk.m_var[i];
+	}
+
+	for(unsigned int i(0); i < m_n*m_2k1; ++i)
+	{
+		m_mat[i] = nk.m_mat[i];
+	}
+}
+
 NK::~NK()
 {
 	delete[] m_mat;
 	delete[] m_var;
+	if(m_s)
+		delete[] m_s;
 }
 
 float NK::evaluate(bool *s)
@@ -43,7 +71,7 @@ float NK::evaluate(bool *s)
 		unsigned int tmp = 0;
 		for(unsigned int j(0); j < m_k1; ++j)
 		{
-			tmp = tmp << 1;
+			tmp <<= 1;
 			tmp += s[m_var[m_k1*i+j]];
 		}
 
@@ -68,6 +96,17 @@ bool NK::islocopt(bool *s)
 	return true;
 }
 
+void NK::mutate(unsigned int prop, unsigned int nb)
+{
+	for(unsigned int i(0); i < m_n*m_2k1; ++i)
+	{
+		m_mat[i] = ((unsigned int)(rand()%1000) < prop) ? ((float)(rand()%10000))/(float)10000. : m_mat[i];
+	}
+	for(unsigned int i(0); i < nb; ++i)
+	{
+		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
+	}
+}
 
 
 

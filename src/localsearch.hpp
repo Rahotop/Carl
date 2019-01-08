@@ -1,6 +1,7 @@
 #ifndef LOCALSEARCH_INCLUDED_HPP
 #define LOCALSEARCH_INCLUDED_HPP
 
+#include <fstream>
 #include <iostream>
 #include <list>
 #include <cstdlib>
@@ -10,6 +11,166 @@
 #include "msmemory.hpp"
 #include "nk.hpp"
 #include "onemax.hpp"
+
+template<class PB>
+void proportions(PB& pb, std::string path)
+{
+	std::ofstream out(path);
+
+	bool *s = new bool[pb.getN()];
+	for(unsigned int i(0); i < pb.getN(); ++i) s[i] = rand()%2;
+
+	std::vector<unsigned int> proposed;
+	std::vector<unsigned int> accepted;
+
+	bool better = true;
+	for(unsigned int it(0); better; ++it)
+	{
+		better = false;
+		for(unsigned int i(0); i < pb.getN(); ++i)
+		{
+			bool *s2 = new bool[pb.getN()];
+			for(unsigned int i(0); i < pb.getN(); ++i) s2[i] = s[i];
+			unsigned int step = 0;
+			unsigned int choice = (rand()%100)+1;
+			step += (choice > 4);
+			step += (choice > 15);
+			step += (choice > 31);
+			step += (choice > 48);
+			step += (choice > 63);
+			step += (choice > 75);
+			step += (choice > 84);
+			step += (choice > 90);
+			step += (choice > 94);
+			step += (choice > 97);
+			step += (choice > 99);
+			unsigned int flip[16];
+			for(unsigned int i(0); i < step; ++i)
+			{
+				flip[i] = rand()%pb.getN();
+				bool different = true;
+				do{
+					different = true;
+					for(unsigned int j(0); j < i; ++j)
+					{
+						if(flip[i] == flip[j])
+						{
+							different = false;
+							break;
+						}
+					}
+					if(!different)
+					{
+						flip[i] = rand()%pb.getN();
+					}
+				}while(!different);
+			}
+			for(unsigned int i(0); i < step; ++i)
+			{
+				s2[flip[i]] = !s2[flip[i]];
+			}
+
+			while(proposed.size() <= step)
+			{
+				proposed.push_back(0);
+				accepted.push_back(0);
+			}
+			++proposed[step];
+
+			if(pb.evaluate(s) < pb.evaluate(s2))
+			{
+				++accepted[step];
+				delete[] s;
+				s = s2;
+				better = true;
+				break;
+			}
+			else
+			{
+				delete[] s2;
+			}
+		}
+	}
+
+	out << pb.evaluate(s) << std::endl << std::endl;
+	delete[] s;
+	unsigned int sum = 0;
+	for(unsigned int i(0); i < accepted.size(); ++i)
+		sum += accepted[i];
+	for(unsigned int i(0); i < accepted.size(); ++i)
+		out << (float)accepted[i]/(float)sum << " ";
+	out << std::endl;
+	sum = 0;
+	for(unsigned int i(0); i < proposed.size(); ++i)
+		sum += proposed[i];
+	for(unsigned int i(0); i < proposed.size(); ++i)
+		out << (float)proposed[i]/(float)sum << " ";
+	out << std::endl;
+}
+
+template<class PB>
+void bitflip(PB& pb, std::string path)
+{
+	std::ofstream out(path);
+
+	bool *s = new bool[pb.getN()];
+	for(unsigned int i(0); i < pb.getN(); ++i) s[i] = rand()%2;
+
+	std::vector<unsigned int> proposed;
+	std::vector<unsigned int> accepted;
+
+	bool better = true;
+	for(unsigned int it(0); better; ++it)
+	{
+		better = false;
+		for(unsigned int i(0); i < pb.getN(); ++i)
+		{
+			bool *s2 = new bool[pb.getN()];
+			unsigned int step = 0;
+			for(unsigned int j(0); j < pb.getN(); ++j)
+			{
+				unsigned int tmp = rand()%pb.getN();
+				s2[j] = (tmp) ? s[j] : !s[j];
+				step += !tmp;
+			}
+
+			while(proposed.size() <= step)
+			{
+				proposed.push_back(0);
+				accepted.push_back(0);
+			}
+			++proposed[step];
+
+			if(pb.evaluate(s) < pb.evaluate(s2))
+			{
+				++accepted[step];
+				delete[] s;
+				s = s2;
+				better = true;
+				break;
+			}
+			else
+			{
+				delete[] s2;
+			}
+		}
+	}
+
+	out << pb.evaluate(s) << std::endl << std::endl;
+	delete[] s;
+	unsigned int sum = 0;
+	for(unsigned int i(0); i < accepted.size(); ++i)
+		sum += accepted[i];
+	for(unsigned int i(0); i < accepted.size(); ++i)
+		out << (float)accepted[i]/(float)sum << " ";
+	out << std::endl;
+	sum = 0;
+	for(unsigned int i(0); i < proposed.size(); ++i)
+		sum += proposed[i];
+	for(unsigned int i(0); i < proposed.size(); ++i)
+		out << (float)proposed[i]/(float)sum << " ";
+	out << std::endl;
+}
 
 template <class PB>
 bool* localsearch(PB& pb, unsigned int *nbEval = nullptr)

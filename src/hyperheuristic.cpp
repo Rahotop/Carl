@@ -5,6 +5,7 @@ FnArray::FnArray(unsigned int maxsize, unsigned int width, unsigned int n) :	m_n
 																				m_width(width),
 																				m_size(0),
 																				m_steps(0),
+																				//m_maths(new unsigned int[maxsize+1]),
 																				m_trees(new unsigned int[maxsize*width]),
 																				m_not(new bool[maxsize*width]),
 																				m_prec(new bool[maxsize]),
@@ -14,6 +15,7 @@ FnArray::FnArray(unsigned int maxsize, unsigned int width, unsigned int n) :	m_n
 																				m_weights(new float[maxsize]),
 																				m_fitness(0.)
 {
+	//for(unsigned int i(0); i < m_maxsize+1; ++i) m_maths[i] = rand()%4;
 	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_trees[i] = 0;
 	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_not[i] = 0;
 }
@@ -23,6 +25,7 @@ FnArray::FnArray(const FnArray& fn) :	m_n(fn.m_n),
 										m_width(fn.m_width),
 										m_size(fn.m_size),
 										m_steps(0),
+										//m_maths(new unsigned int [fn.m_maxsize+1]),
 										m_trees(new unsigned int[fn.m_maxsize*fn.m_width]),
 										m_not(new bool[fn.m_maxsize*fn.m_width]),
 										m_prec(new bool[fn.m_maxsize]),
@@ -32,6 +35,7 @@ FnArray::FnArray(const FnArray& fn) :	m_n(fn.m_n),
 										m_weights(new float[fn.m_maxsize]),
 										m_fitness(0.)
 {
+	//for(unsigned int i(0); i < m_maxsize+1; ++i) m_maths[i] = fn.m_maths[i];
 	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_trees[i] = fn.m_trees[i];
 	for(unsigned int i(0); i < m_maxsize*m_width; ++i) m_not[i] = fn.m_not[i];
 	for(unsigned int i(0); i < m_maxsize*m_n; ++i) m_in[i] = fn.m_in[i];
@@ -74,6 +78,7 @@ void FnArray::addRandom(const std::vector<unsigned int>& fnset)
 		for(unsigned int i(0); i < m_n; ++i) m_in[i*m_maxsize + m_size] = false;
 
 		unsigned int width = (rand()%((m_width+1)/2)) * 2 + 1;
+		//unsigned int width = ((rand()%(((m_width/2)+1)/2)) * 2 + 1)*2;
 		unsigned int stack = 0;
 
 		unsigned int subtree = m_size*m_width;
@@ -151,8 +156,10 @@ unsigned int FnArray::mutate(const std::vector<unsigned int>& fnset)
 			swapvar();
 		else if(tmp == 7)
 			addvar(fnset);
+		else if(tmp == 8)
+			delvar();/*
 		else
-			delvar();
+			m_maths[rand()%(m_maxsize+1)] = rand()%4;*/
 		return tmp;
 	}
 	return 0;
@@ -205,6 +212,8 @@ float FnArray::evaluate(bool *s)
 	unsigned int end = m_n+16;
 
 	bool *tmp = new bool[m_width];
+	//float *tmpm = new float[m_maxsize*2+1];
+	//unsigned int stackm = 0;
 
 	for(unsigned int i(0); i < m_size; ++i)
 	{
@@ -232,9 +241,30 @@ float FnArray::evaluate(bool *s)
 				tmp[stack++] = (op%2 == notop);
 			}
 		}
+		//tmpm[stackm++] = tmp[0] * m_weights[i];
 		sum += tmp[0] * m_weights[i];
 		m_prec[i] = tmp[0];
 	}
+/*
+	for(unsigned int i(0); stackm > 1; ++i)
+	{
+		--stackm;
+		float v1 = tmpm[stackm];
+		--stackm;
+		float v2 = tmpm[stackm];
+
+		if(m_maths[i] == 0)
+			tmpm[stackm++] = v1 + v2;
+		else if(m_maths[i] == 1)
+			tmpm[stackm++] = v1 * v2;
+		else if(m_maths[i] == 2)
+			tmpm[stackm++] = (v2 == 0) ? 0 : v1 / v2;
+		else if(m_maths[i] == 3)
+			tmpm[stackm++] = v1 - v2;
+	}
+
+	sum = tmpm[0];
+	delete[] tmpm;*/
 
 	delete[] tmp;
 	return sum;
@@ -316,6 +346,7 @@ bool* FnArray::ls(bool *s, unsigned int *nbEval)
 		{
 			m_s[next[i]] = !m_s[next[i]];
 			float tmp = evaluateinc(m_s, next[i]);
+		//	float tmp = evaluate(m_s);
 			++tmpEval;
 
 			if(tmp > score)
@@ -537,7 +568,8 @@ void FnArray::delvar()
 	unsigned int width = 0;
 	for(;width < m_width && m_trees[tree*m_width + width] < m_n+16; ++width);
 
-	if(width >= 3)
+	//if(width >= 3)
+	if(width >= 50)
 	{
 		unsigned int mutate = rand()%width;
 		while(m_trees[tree*m_width + mutate] >= 16) mutate = rand()%width;
@@ -650,22 +682,27 @@ HyperHeuritic::~HyperHeuritic()
 }
 
 void HyperHeuritic::initrand(unsigned int newSize)
-{
+{/*
 	m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
-	for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);
+	for(unsigned int i(0); i < newSize; ++i) m_pop.back()->addRandom(m_fnset);*/
+	newSize = newSize;
 }
 
 void HyperHeuritic::initall(unsigned int newSize)
-{
+{/*
 	newSize = newSize;
 	m_pop.push_back(new FnArray(m_maxsize, m_width, m_n));
-	for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);
+	for(unsigned int i(0); i < m_n; ++i) m_pop.back()->add(i+16,rand()%2);*/
+	newSize = newSize;
 }
 
 unsigned int HyperHeuritic::mut()
-{
+{/*
 	m_pop.push_back(new FnArray(*m_pop.back()));
-	return m_pop.back()->mutate(m_fnset);
+	//for(unsigned int i(0); i < 9; ++i)
+	//m_pop.back()->mutate(m_fnset);
+	return m_pop.back()->mutate(m_fnset);*/
+	return 0;
 }
 
 
