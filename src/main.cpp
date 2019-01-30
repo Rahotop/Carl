@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 	//ressemblance(256,150,1,60,20,1);
 	//ressemblancenk(256,100,1,120,40,1);
 /*
-	NK inst("inst/nk_256_1.0");
+	NK inst("inst/nk_256_12.0");
 	std::vector<float> scores;
 	float min = 1;
 	float max = 0;
@@ -395,21 +395,21 @@ int main(int argc, char **argv)
 	for(unsigned int i(0); i < 6; ++i)
 	{
 		std::cout << min+i*diff << " 0.73 " << std::setprecision(3) << min+i*diff << std::endl;
-	}*/
-
+	}
+*/
 /*
-	NK inst("inst/nk_256_1.0");
+	NK inst("inst/nk_256_12.0");
 	for(unsigned int i(0); i < 100; ++i)
 	{
 		bitflip(inst, "bitflip-"+std::to_string(i)+".txt");
 	}*/
 /*
-	NK inst("inst/nk_256_1.0");
+	NK inst("inst/nk_256_12.0");
 	for(unsigned int i(0); i < 100; ++i)
 	{
 		proportions(inst, "proportions-"+std::to_string(i)+".txt");
-	}
-*/
+	}*/
+
 	return 0;
 }
 

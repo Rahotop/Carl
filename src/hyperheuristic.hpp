@@ -681,7 +681,7 @@ class HyperHeuritic
 
 
 		// INIT POP
-		NK *curr = new NK(m_n,12);
+		NK *curr = new NK(m_n,1);
 		curr->ls(m_s);
 		curr->setfitness(pb.evaluate(curr->getSol()));
 
@@ -690,10 +690,10 @@ class HyperHeuritic
 		{
 			better = false;
 			NK *voisin = nullptr;
-			for(unsigned int i(0); i < visit; ++i)
+			for(unsigned int i(0); i < pb.getN(); ++i)
 			{
 				voisin = new NK(*curr);
-				voisin->mutate(evalmax,newSize);
+				voisin->mutate(evalmax,newSize,curr->getSol(),visit);
 				voisin->ls(curr->getSol());
 				voisin->setfitness(pb.evaluate(voisin->getSol()));
 

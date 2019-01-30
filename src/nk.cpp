@@ -108,5 +108,41 @@ void NK::mutate(unsigned int prop, unsigned int nb)
 	}
 }
 
+void NK::mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc)
+{
+	unsigned int *act = new unsigned int[m_n];
+	for(unsigned int i(0); i < m_n; ++i)
+	{
+		unsigned int tmp = 0;
+		for(unsigned int j(0); j < m_k1; ++j)
+		{
+			tmp <<= 1;
+			tmp += s[m_var[m_k1*i+j]];
+		}
+		act[i] = tmp;
+	}
+
+/*
+	for(unsigned int i(0); i < m_n; ++i)
+	{
+		for(unsigned int j(0); j < m_2k1; ++i)
+		{
+			m_mat[i*m_2k1+j] = ((unsigned int)(rand()%1000) < 
+				prop+loc*(act[i]==j))
+				 ? ((float)(rand()%10000))/(float)10000. : m_mat[i*m_2k1+j];
+		}
+	}*/
+	for(unsigned int i(0); i < m_n*m_2k1; ++i)
+	{
+		m_mat[i] = ((unsigned int)(rand()%1000) < prop+loc*(act[i/m_2k1]==i%m_2k1)) ? ((float)(rand()%10000))/(float)10000. : m_mat[i];
+	}
+	for(unsigned int i(0); i < nb; ++i)
+	{
+		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
+	}
+
+	delete[] act;
+}
+
 
 

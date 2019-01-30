@@ -33,6 +33,7 @@ void proportions(PB& pb, std::string path)
 			for(unsigned int i(0); i < pb.getN(); ++i) s2[i] = s[i];
 			unsigned int step = 0;
 			unsigned int choice = (rand()%100)+1;
+			/* 256-1-256-1
 			step += (choice > 4);
 			step += (choice > 15);
 			step += (choice > 31);
@@ -43,8 +44,86 @@ void proportions(PB& pb, std::string path)
 			step += (choice > 90);
 			step += (choice > 94);
 			step += (choice > 97);
+			step += (choice > 99);*/
+
+			/* 256-1-256-12 
+			step += (choice > 19);
+			step += (choice > 29);
+			step += (choice > 35);
+			step += (choice > 40);
+			step += (choice > 44);
+			step += (choice > 48);
+			step += (choice > 52);
+			step += (choice > 56);
+			step += (choice > 59);
+			step += (choice > 62);
+			step += (choice > 65);
+			step += (choice > 68);
+			step += (choice > 71);
+			step += (choice > 74);
+			step += (choice > 77);
+			step += (choice > 79);
+			step += (choice > 81);
+			step += (choice > 83);
+			step += (choice > 85);
+			step += (choice > 87);
+			step += (choice > 89);
+			step += (choice > 91);
+			step += (choice > 92);
+			step += (choice > 93);
+			step += (choice > 94);
+			step += (choice > 95);
+			step += (choice > 96);
+			step += (choice > 97);
+			step += (choice > 98);
+			step += (choice > 99);*/
+
+			/* 256-12-256-1 */
+			step += (choice > 18);
+			step += (choice > 44);
+			step += (choice > 65);
+			step += (choice > 80);
+			step += (choice > 89);
+			step += (choice > 94);
+			step += (choice > 97);
 			step += (choice > 99);
-			unsigned int flip[16];
+
+			/* 256-12-256-12
+			step += (choice > 14);
+			step += (choice > 22);
+			step += (choice > 28);
+			step += (choice > 32);
+			step += (choice > 36);
+			step += (choice > 40);
+			step += (choice > 44);
+			step += (choice > 48);
+			step += (choice > 52);
+			step += (choice > 55);
+			step += (choice > 58);
+			step += (choice > 61);
+			step += (choice > 64);
+			step += (choice > 67);
+			step += (choice > 70);
+			step += (choice > 73);
+			step += (choice > 76);
+			step += (choice > 78);
+			step += (choice > 80);
+			step += (choice > 82);
+			step += (choice > 84);
+			step += (choice > 86);
+			step += (choice > 88);
+			step += (choice > 90);
+			step += (choice > 91);
+			step += (choice > 92);
+			step += (choice > 93);
+			step += (choice > 94);
+			step += (choice > 95);
+			step += (choice > 96);
+			step += (choice > 97);
+			step += (choice > 98);
+			step += (choice > 99);*/
+
+			unsigned int flip[64];
 			for(unsigned int i(0); i < step; ++i)
 			{
 				flip[i] = rand()%pb.getN();

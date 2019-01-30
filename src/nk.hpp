@@ -26,6 +26,7 @@ class NK
 	inline void setfitness(float fit) { m_fit = fit; }
 	inline float getfitness() const { return m_fit; }
 	void mutate(unsigned int prop, unsigned int nb);
+	void mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc);
 	inline unsigned int size() const { return 0; }
 	inline unsigned int getsteps() const { return m_nbstep; }
 	inline bool* getSol() const { return m_s; }
@@ -84,7 +85,6 @@ class NK
 	float *m_mat;
 	unsigned int *m_var;
 	unsigned long long m_nbeval;
-
 
 	float m_fit;
 	bool *m_s;
