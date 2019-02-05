@@ -32,9 +32,9 @@ NK::NK(unsigned int n, unsigned int k) : m_n(n), m_k1(k+1), m_2k1(pow(2,(k+1))),
 {
 	for(unsigned int i(0); i < m_n*m_k1; ++i)
 	{
-		m_var[i] = rand()%n;
+		m_var[i] = rand()%n;/*
 		if(i%m_k1 == 0)
-			m_var[i] = i/m_k1;
+			m_var[i] = i/m_k1;*/
 	}
 
 	for(unsigned int i(0); i < m_n*m_2k1; ++i)
@@ -117,6 +117,22 @@ void NK::showvar()
 	std::cout << std::endl;
 }
 
+void NK::copylinks(const NK& nk)
+{
+	for(unsigned int i(0); i < m_n*m_k1; ++i)
+	{
+		m_var[i] = nk.m_var[i];
+	}
+}
+
+void NK::copymat(const NK& nk)
+{
+	for(unsigned int i(0); i < m_n*m_2k1; ++i)
+	{
+		m_mat[i] = nk.m_mat[i];
+	}
+}
+
 void NK::mutate(unsigned int prop, unsigned int nb)
 {
 	for(unsigned int i(0); i < m_n*m_2k1; ++i)
@@ -161,12 +177,12 @@ void NK::mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc)
 	{
 		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
 	}
-
+/*
 	for(unsigned int i(0); i < m_n*m_k1; ++i)
 	{
 		if(i%m_k1 == 0)
 			m_var[i] = i/m_k1;
-	}
+	}*/
 
 	delete[] act;
 }

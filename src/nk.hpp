@@ -20,6 +20,8 @@ class NK
 	float evaluate(bool *s);
 	bool islocopt(bool *s);
 	void showvar();
+	void copylinks(const NK& nk);
+	void copymat(const NK& nk);
 
 	inline unsigned int getnbeval() const { return m_nbeval; }
 	inline unsigned int getN() const { return m_n; }

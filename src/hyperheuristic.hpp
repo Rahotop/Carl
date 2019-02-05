@@ -664,6 +664,17 @@ class HyperHeuritic
 	template<class PB>
 	void run(PB& pb, INIT in, unsigned int newSize, unsigned int visit, unsigned int evalmax, const std::string& file)
 	{
+		pb =pb;
+		in = in;
+		newSize = newSize;
+		visit = visit;
+		evalmax = evalmax;
+		file.size();
+	}
+
+	//template<class PB>
+	void run(NK& pb, INIT in, unsigned int newSize, unsigned int visit, unsigned int evalmax, const std::string& file)
+	{
 		in = in;
 		newSize = newSize;
 		evalmax = evalmax;
@@ -682,6 +693,7 @@ class HyperHeuritic
 
 		// INIT POP
 		NK *curr = new NK(m_n,1);
+		curr->copylinks(pb);
 		curr->ls(m_s);
 		curr->setfitness(pb.evaluate(curr->getSol()));
 
