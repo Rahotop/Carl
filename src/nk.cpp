@@ -33,6 +33,8 @@ NK::NK(unsigned int n, unsigned int k) : m_n(n), m_k1(k+1), m_2k1(pow(2,(k+1))),
 	for(unsigned int i(0); i < m_n*m_k1; ++i)
 	{
 		m_var[i] = rand()%n;
+		if(i%m_k1 == 0)
+			m_var[i] = i/m_k1;
 	}
 
 	for(unsigned int i(0); i < m_n*m_2k1; ++i)
@@ -96,6 +98,25 @@ bool NK::islocopt(bool *s)
 	return true;
 }
 
+void NK::showvar()
+{
+	unsigned int *tmp = new unsigned int[m_n];
+	for(unsigned int i(0); i < m_n; ++i)
+	{
+		tmp[i] = 0;
+	}
+	for(unsigned int i(0); i < m_n*m_k1; ++i)
+	{
+		++tmp[m_var[i]];
+	}
+	for(unsigned int i(0); i < m_n; ++i)
+	{
+		//if(tmp[i] >= 5)
+		std::cout << i << " : " << tmp[i] << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 void NK::mutate(unsigned int prop, unsigned int nb)
 {
 	for(unsigned int i(0); i < m_n*m_2k1; ++i)
@@ -139,6 +160,12 @@ void NK::mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc)
 	for(unsigned int i(0); i < nb; ++i)
 	{
 		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
+	}
+
+	for(unsigned int i(0); i < m_n*m_k1; ++i)
+	{
+		if(i%m_k1 == 0)
+			m_var[i] = i/m_k1;
 	}
 
 	delete[] act;

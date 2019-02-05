@@ -1,6 +1,7 @@
 #ifndef NK_HPP_INCLUDED
 #define NK_HPP_INCLUDED
 
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <vector>
@@ -18,6 +19,7 @@ class NK
 
 	float evaluate(bool *s);
 	bool islocopt(bool *s);
+	void showvar();
 
 	inline unsigned int getnbeval() const { return m_nbeval; }
 	inline unsigned int getN() const { return m_n; }
