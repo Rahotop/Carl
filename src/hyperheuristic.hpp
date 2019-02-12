@@ -693,7 +693,7 @@ class HyperHeuritic
 
 		// INIT POP
 		NK *curr = new NK(m_n,1);
-		//curr->copylinks(pb);
+		curr->copylinks(pb);
 		//curr->copymat(pb);
 		curr->ls(m_s);
 		curr->setfitness(pb.evaluate(curr->getSol()));
