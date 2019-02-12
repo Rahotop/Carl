@@ -345,6 +345,16 @@ int main(int argc, char **argv)
 	//ressemblance(256,150,1,60,20,1);
 	//ressemblancenk(256,100,1,120,40,1);
 /*
+	NK inst("inst/nk_256_1.0");
+	float sum = 0;
+	for(unsigned int i(0); i < 100; ++i)
+	{
+		bool *s = localsearch(inst);
+		sum += inst.evaluate(s);
+		delete[] s;
+	}
+	std::cout << sum/100.0 << std::endl;*/
+/*
 	NK inst("inst/nk_256_12.0");
 	std::vector<float> scores;
 	float min = 1;
