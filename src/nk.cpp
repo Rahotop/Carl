@@ -74,7 +74,10 @@ float NK::evaluate(bool *s)
 		for(unsigned int j(0); j < m_k1; ++j)
 		{
 			tmp <<= 1;
-			tmp += s[m_var[m_k1*i+j]];
+			if(m_var[m_k1*i+j] < m_n)
+				tmp += s[m_var[m_k1*i+j]];
+			else if(m_var[m_k1*i+j] == m_n)
+				tmp += 1;
 		}
 
 		sum += m_mat[m_2k1*i+tmp];
@@ -100,8 +103,8 @@ bool NK::islocopt(bool *s)
 
 void NK::showvar()
 {
-	unsigned int *tmp = new unsigned int[m_n];
-	for(unsigned int i(0); i < m_n; ++i)
+	unsigned int *tmp = new unsigned int[m_n+2];
+	for(unsigned int i(0); i < m_n+2; ++i)
 	{
 		tmp[i] = 0;
 	}
@@ -109,7 +112,7 @@ void NK::showvar()
 	{
 		++tmp[m_var[i]];
 	}
-	for(unsigned int i(0); i < m_n; ++i)
+	for(unsigned int i(0); i < m_n+2; ++i)
 	{
 		//if(tmp[i] >= 5)
 		std::cout << i << " : " << tmp[i] << std::endl;
@@ -175,7 +178,7 @@ void NK::mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc)
 	}
 	for(unsigned int i(0); i < nb; ++i)
 	{
-		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
+		m_var[rand()%(m_n*m_k1)] = rand()%(m_n+2);
 	}
 /*
 	for(unsigned int i(0); i < m_n*m_k1; ++i)
