@@ -693,7 +693,7 @@ class HyperHeuritic
 
 		// INIT POP
 		NK *curr = new NK(m_n,1);
-		curr->showvar();
+		//curr->showvar();
 		//curr->copylinks(pb);
 		//curr->copymat(pb);
 		curr->ls(m_s);
@@ -753,7 +753,8 @@ class HyperHeuritic
 			res << (double)proposed[i]/(double)sum << " ";
 		}
 
-		curr->showvar();
+		//curr->showvar();
+		//std::cout << curr->getfitness() << std::endl;
 		delete curr;
 	}
 /*

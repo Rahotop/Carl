@@ -178,7 +178,34 @@ void NK::mutate(unsigned int prop, unsigned int nb, bool *s, unsigned int loc)
 	}
 	for(unsigned int i(0); i < nb; ++i)
 	{
-		m_var[rand()%(m_n*m_k1)] = rand()%(m_n+2);
+		m_var[rand()%(m_n*m_k1)] = rand()%m_n;
+	}
+
+	if(!(rand()%10))
+	{
+		m_var[rand()%(m_n*m_k1)] = m_n+rand()%2;
+	}
+
+	if(!(rand()%10))
+	{
+		unsigned int tmp = rand()%(m_n*m_k1);
+		bool cont = true;
+		for(unsigned int i(tmp); i < m_n*m_k1 && cont; ++i)
+		{
+			if(m_var[i] >= m_n)
+			{
+				m_var[i]= rand()%m_n;
+				cont = false;
+			}
+		}
+		for(unsigned int i(0); i < tmp && cont; ++i)
+		{
+			if(m_var[i] >= m_n)
+			{
+				m_var[i]= rand()%m_n;
+				cont = false;
+			}
+		}
 	}
 /*
 	for(unsigned int i(0); i < m_n*m_k1; ++i)
